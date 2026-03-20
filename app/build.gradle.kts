@@ -19,6 +19,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String","BACKEND_API_URL","\"${property("BACKEND_API_URL")}\"")
     }
 
     buildTypes {
@@ -35,11 +36,14 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     buildFeatures {
+        buildConfig=true
         compose = true
     }
 }
 
 dependencies {
+    val nav_version = "2.9.7"
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -56,4 +60,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    implementation(libs.gson)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.java.jwt)
 }
