@@ -63,4 +63,5 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.java.jwt)
+    implementation(libs.androidx.datastore.preferences)
 }

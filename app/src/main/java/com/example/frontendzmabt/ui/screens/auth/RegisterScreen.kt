@@ -12,6 +12,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,19 +24,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.frontendzmabt.BuildConfig
-import com.example.frontendzmabt.data.API
-import com.example.frontendzmabt.viewmodel.register
+import androidx.navigation.NavController
+import com.example.frontendzmabt.data.repository.AuthRepository
+import com.example.frontendzmabt.ui.components.ContinueGuestButton
+import com.example.frontendzmabt.ui.screens.Screen
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
-fun RegisterScreen(){
+fun RegisterScreen(navController: NavController){
     var email by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordConfirmation by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -74,14 +75,18 @@ fun RegisterScreen(){
                 .padding(bottom = 24.dp),
             singleLine = true
         )
-        RegisterButton(username,email,password)
-        Button(onClick = {
-            println("TODO")
-        },modifier = Modifier.fillMaxWidth().height(50.dp)
-
-        ) {
-            Text(text = "Continue As Guest", fontSize = 16.sp)
-        }
+        OutlinedTextField(
+            value = passwordConfirmation,
+            onValueChange = { passwordConfirmation = it },
+            label = { Text("PasswordConfirmation") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            singleLine = true
+        )
+        RegisterButton(username,email,password,passwordConfirmation,navController)
+        ContinueGuestButton(navController)
         /*Button(
             onClick = {
                 // Handle login logic here
@@ -97,16 +102,33 @@ fun RegisterScreen(){
     }
 }
 @Composable
-fun RegisterButton(username:String,email:String,password:String) {
-    val context: Context = LocalContext.current
+fun RegisterButton(username:String,email:String,password:String,passwordConfirmation:String,navController: NavController) { val context: Context = LocalContext.current
 
     // Coroutine scope tied to the composable
     val scope: CoroutineScope = rememberCoroutineScope()
     Button(onClick = {
-        register(username,email,password,scope,context)
+
+        scope.launch {
+            val repo = AuthRepository(context)
+            val success = repo.register(username,email ,password,passwordConfirmation)
+
+            if (success) {
+                navController.navigate("home")
+            } else {
+                Toast.makeText(context, "Login failed", Toast.LENGTH_LONG).show()
+            }
+        }
     },modifier = Modifier.fillMaxWidth().height(50.dp)
 
     ) {
         Text(text = "Submit", fontSize = 16.sp)
+    }
+}
+@Composable
+fun MoveToLoginButton(text:MutableState<String>,navController: NavController) {
+    Button(
+        onClick = { navController.navigate(route = Screen.LoginScreen.route) }
+    ) {
+        Text(text = "have an account? Log IN", fontSize = 16.sp)
     }
 }

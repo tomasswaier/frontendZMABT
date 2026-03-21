@@ -24,13 +24,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.frontendzmabt.BuildConfig
-import com.example.frontendzmabt.data.API
+import com.example.frontendzmabt.data.repository.AuthRepository
 import com.example.frontendzmabt.ui.components.ContinueGuestButton
-import com.example.frontendzmabt.viewmodel.logIn
-import kotlinx.coroutines.Dispatchers
+import com.example.frontendzmabt.ui.screens.Screen
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun LoginScreen(navController: NavController){
@@ -48,7 +45,6 @@ fun LoginScreen(navController: NavController){
         horizontalAlignment = CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // UI components go here
         OutlinedTextField(
             value = username,
             onValueChange = { username= it },
@@ -69,36 +65,39 @@ fun LoginScreen(navController: NavController){
                 .padding(bottom = 24.dp),
             singleLine = true
         )
-        LoginButton(username,password)
+        LoginButton(username,password,navController)
         ContinueGuestButton(navController)
         MoveToRegisterButton(text,navController);
     }
 }
 
 @Composable
-fun LoginButton(username:String,password:String) {
+fun LoginButton(username:String,password:String,navController: NavController) {
     val context = LocalContext.current
-
-    // Coroutine scope tied to the composable
     val scope = rememberCoroutineScope()
     Button(onClick = {
-        logIn(username,password,scope,context)
+
+        scope.launch {
+            val repo = AuthRepository(context)
+            val success = repo.logIn(username, password)
+
+            if (success) {
+                navController.navigate(Screen.HomeScreen.route)
+            } else {
+                Toast.makeText(context, "Login failed", Toast.LENGTH_LONG).show()
+            }
+        }
     },modifier = Modifier.fillMaxWidth().height(50.dp)
 
     ) {
         Text(text = "Submit", fontSize = 16.sp)
+
     }
 }
 @Composable
 fun MoveToRegisterButton(text:MutableState<String>,navController: NavController) {
-    val context = LocalContext.current
-
-    // Coroutine scope tied to the composable
-    val scope = rememberCoroutineScope()
     Button(
         onClick = { navController.navigate(route = Screen.RegisterScreen.route) }
-
-        //it == currentDestination,
     ) {
         Text(text = "Don't have an account? Register", fontSize = 16.sp)
     }
