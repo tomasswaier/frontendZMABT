@@ -1,5 +1,11 @@
 package com.example.frontendzmabt.ui.screens
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -7,6 +13,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.frontendzmabt.R
+import com.example.frontendzmabt.data.SessionManager
+import com.example.frontendzmabt.data.User
 import com.example.frontendzmabt.ui.screens.auth.LoginScreen
 import com.example.frontendzmabt.ui.screens.auth.RegisterScreen
 import com.example.frontendzmabt.ui.screens.main.HomeScreen
@@ -77,4 +85,15 @@ fun NavigationManager() {
 
         }
     }
+    val context = LocalContext.current
+    val session = SessionManager(context)
+
+    var user by remember { mutableStateOf<User?>(null) }
+    LaunchedEffect(Unit) {
+        user = session.getUser()
+    }
+    if(user!=null && user?.id!=null) {
+        navController.navigate(Screen.HomeScreen.route)
+    }
+
 }
