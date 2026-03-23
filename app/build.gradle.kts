@@ -19,6 +19,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
         buildConfigField("String","BACKEND_API_URL","\"${property("BACKEND_API_URL")}\"")
     }
 
@@ -42,7 +43,7 @@ android {
 }
 
 dependencies {
-    val nav_version = "2.9.7"
+    implementation(libs.androidx.junit.ktx)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -64,4 +65,13 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.java.jwt)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.kotlinx.coroutines.test)
+        implementation(libs.androidx.junit.v130)
+        implementation(libs.androidx.runner)
+        implementation(libs.androidx.espresso.core.v370)
+        implementation(libs.kotlinx.coroutines.test)
+    implementation(libs.androidx.paging.compose)
+
 }

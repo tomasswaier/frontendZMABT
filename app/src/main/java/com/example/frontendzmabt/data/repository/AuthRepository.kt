@@ -17,8 +17,8 @@ data class LoginData(
 )
 
 class AuthRepository(private val context: Context) {
-
     suspend fun logIn(username:String, password:String):Boolean{
+        if (!validateLogin(username,password)) return false;
         println("Username: $username")
         println("Password: $password")
         try {
@@ -55,6 +55,7 @@ class AuthRepository(private val context: Context) {
 
     }
     suspend fun register(username:String,email:String,password:String,passwordConfirmation:String):Boolean {
+        validateRegister(username,password,passwordConfirmation,email)
         println("Username: $username")
         println("email: $email")
         println("Password: $password")
@@ -92,4 +93,22 @@ class AuthRepository(private val context: Context) {
 
 
     }
+}
+fun validateRegister(username:String,password:String,passwordConfirmation: String,email: String):Boolean {
+    if (username.isEmpty() || username.length<2){
+        return false
+    }
+    if (password.isEmpty() || password.length<2 ||password!=passwordConfirmation){
+        return false
+    }
+    return true
+}
+fun validateLogin(username:String,password:String):Boolean {
+    if (username.isEmpty() || username.length<2){
+        return false
+    }
+    if (password.isEmpty() || password.length<2){
+        return false
+    }
+    return true
 }

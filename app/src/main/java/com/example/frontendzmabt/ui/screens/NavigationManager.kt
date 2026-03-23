@@ -20,6 +20,7 @@ import com.example.frontendzmabt.ui.screens.auth.RegisterScreen
 import com.example.frontendzmabt.ui.screens.main.HomeScreen
 import com.example.frontendzmabt.ui.screens.main.MapScreen
 import com.example.frontendzmabt.ui.screens.main.ProfileScreen
+import com.example.frontendzmabt.ui.screens.main.PostCreateScreen
 
 
 sealed class Screen(val route: String) {
@@ -29,6 +30,7 @@ sealed class Screen(val route: String) {
     object ProfileScreen: Screen("profile_screen/{userId}")
     object UserProfileScreen: Screen("user_profile_screen")
     object MapScreen: Screen("map_screen")
+    object PostScreen: Screen("post_screen")
 }
 enum class AppNavigation(var label:String,val route:String,val icon:Int,){
     Profile("Profile",Screen.UserProfileScreen.route,R.drawable.ic_account_box),
@@ -81,6 +83,9 @@ fun NavigationManager() {
             }
             composable(route =Screen.MapScreen.route) {
                 MapScreen(navController)
+            }
+            composable(route =Screen.PostScreen.route) {
+                PostCreateScreen(navController)
             }
 
         }
