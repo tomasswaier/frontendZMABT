@@ -2,32 +2,19 @@ package com.example.frontendzmabt.ui.screens.main
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.frontendzmabt.BuildConfig
 import com.example.frontendzmabt.data.API
-import com.example.frontendzmabt.ui.screens.AppNavigation
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
+import com.example.frontendzmabt.ui.components.PostList
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -36,21 +23,9 @@ fun HomeScreen(navController: NavController) {
         header={Text("Header")}
         ,content={Column{
             Text("Body")
-            Greeting(
-                name = "Bugga",
-                modifier = Modifier.padding(3.dp)
-            )
-            TestApiButton()
-
+            PostList(0,false)
             }
         }
-    )
-}
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
     )
 }
 @Composable

@@ -68,12 +68,12 @@ data class PostBody(
             e.printStackTrace()
         }
         return false;
-
     }
-    fun getUserPostsPager(): Flow<PagingData<PostBody>> {
+
+    fun getPostsPager(id:Int,isUser:Boolean): Flow<PagingData<PostBody>> {
         return Pager(
             config = PagingConfig(pageSize = 10),
-            pagingSourceFactory = { PostPagingSource(context) }
+            pagingSourceFactory = { PostPagingSource(context,id,isUser) }
         ).flow
     }
 }

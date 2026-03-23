@@ -12,7 +12,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class PostPagingSource(
-    private val context: Context
+    private val context: Context,
+    private val id:Int,
+    private val isUser:Boolean
 ) : PagingSource<Int, PostBody>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, PostBody> {
@@ -24,8 +26,14 @@ class PostPagingSource(
             if (token.isNullOrEmpty()) {
                 return LoadResult.Page(emptyList(), null, null)
             }
-
-            val apiUrl = BuildConfig.BACKEND_API_URL + "/posts/getUser?page=$page"
+            var apiUrl="";
+            if (this.isUser) {
+                apiUrl = BuildConfig.BACKEND_API_URL + "/posts/getUser?page=$page"
+            }else if( this.id > 0){
+                apiUrl = BuildConfig.BACKEND_API_URL + "/posts/get?page=$page"
+            }else{
+                apiUrl = BuildConfig.BACKEND_API_URL + "/posts/getFyp?page=$page"
+            }
 
             val result = withContext(Dispatchers.IO) {
                 API.callApi(apiUrl, token, "GET", null)
