@@ -1,9 +1,7 @@
 todo :  sprevoznit mapu
         pridat validators na places
         vlastne vsetko co ma spolocne s maps
-        homepage
-        profile page
-        asi trochu lepsie poriesit otvorenie appky lebo teraz tam flashne login screen
+        //asi trochu lepsie poriesit otvorenie appky lebo teraz tam flashne login screen
 
 
 

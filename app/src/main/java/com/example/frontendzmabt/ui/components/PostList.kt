@@ -2,6 +2,7 @@ package com.example.frontendzmabt.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
@@ -11,9 +12,12 @@ import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.frontendzmabt.data.repository.PostRepository
+import com.example.frontendzmabt.ui.screens.PostNavArgs
+import com.example.frontendzmabt.ui.screens.Screen
+import com.example.frontendzmabt.ui.screens.toRoute
 
 @Composable
-fun PostList(id: Int, isUser: Boolean) {
+fun PostList(navController: NavController,id: Int, isUser: Boolean) {
     //if isUser == true then display posts of the users who's logged in
     //if id is set then display posts of user specified in id
     //if both false then display posts of all users
@@ -27,14 +31,19 @@ fun PostList(id: Int, isUser: Boolean) {
     Column {
 
         LazyColumn {
+
             items(lazyPagingItems.itemCount) { index ->
                 val post = lazyPagingItems[index]
 
                 val key = post?.id ?: index
                 key(key) {
                     if (post != null) {
-                        Text(post.description)
-                        Text(post.createdAt)
+                        Button(onClick={
+                            navController.navigate(PostNavArgs(post.id,isUser).toRoute())
+                        }) {
+                            Text(post.description)
+                            Text(post.createdAt)
+                        }
                     } else {
                         Text("Loading...")
                     }

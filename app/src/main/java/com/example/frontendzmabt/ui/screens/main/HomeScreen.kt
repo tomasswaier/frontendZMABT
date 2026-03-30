@@ -23,7 +23,7 @@ fun HomeScreen(navController: NavController) {
         header={Text("Header")}
         ,content={Column{
             Text("Body")
-            PostList(0,false)
+            PostList(navController,0,false)
             }
         }
     )

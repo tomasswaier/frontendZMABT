@@ -11,12 +11,35 @@ import kotlinx.coroutines.withContext
 import com.example.frontendzmabt.data.User
 
 data class LoginResponse(val data: LoginData)
+data class LogOutResponse(val data: LoginData)
 data class LoginData(
     val token: String,
     val user: User
 )
 
 class AuthRepository(private val context: Context) {
+    suspend fun logout():Boolean{
+        try {
+            val apiUrl = BuildConfig.BACKEND_API_URL+"/auth/logout"//+"/api/v1/login"
+            // Make network request on IO thread
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(apiUrl, "", "POST", "")
+            }
+            val gson= Gson()
+            val response= gson.fromJson(result,LoginResponse::class.java)
+            val session= SessionManager(context);
+            println(response);
+            session.logout()
+
+            return true
+            //println(session.getToken())
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+        return false;
+
+    }
     suspend fun logIn(username:String, password:String):Boolean{
         if (!validateLogin(username,password)) return false;
         println("Username: $username")
@@ -33,6 +56,7 @@ class AuthRepository(private val context: Context) {
             val result = withContext(Dispatchers.IO) {
                 API.callApi(apiUrl, "", "POST", requestBody)
             }
+            println(result)
             val gson= Gson()
             val response= gson.fromJson(result,LoginResponse::class.java)
             val session= SessionManager(context);

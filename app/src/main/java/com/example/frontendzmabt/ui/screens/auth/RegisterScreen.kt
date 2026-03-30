@@ -113,7 +113,7 @@ fun RegisterButton(username:String,email:String,password:String,passwordConfirma
             val success = repo.register(username,email ,password,passwordConfirmation)
 
             if (success) {
-                navController.navigate("home")
+                navController.navigate(Screen.HomeScreen.route)
             } else {
                 Toast.makeText(context, "Login failed", Toast.LENGTH_LONG).show()
             }

@@ -120,7 +120,7 @@ fun SubmitPostButton(navController: NavController,postText:String,rating:Int,lon
             val success = repo.create(postText=postText,rating=rating,longitude=longitude,latitude=latitude)
 
             if (success) {
-                navController.navigate(Screen.ProfileScreen.route)
+                navController.navigate(Screen.UserProfileScreen.route)
             } else {
                 Toast.makeText(context, "Failed to post content", Toast.LENGTH_LONG).show()
             }

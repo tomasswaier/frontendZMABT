@@ -1,5 +1,6 @@
 package com.example.frontendzmabt.ui.screens.main
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,21 +25,28 @@ import androidx.navigation.NavController
 import com.example.frontendzmabt.R
 import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.User
+import com.example.frontendzmabt.data.repository.AuthRepository
+import com.example.frontendzmabt.data.repository.Post
+import com.example.frontendzmabt.data.repository.PostRepository
+import com.example.frontendzmabt.data.repository.UserRepository
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 import com.example.frontendzmabt.ui.screens.Screen
 import com.example.frontendzmabt.ui.components.PostList
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun ProfileScreen(navController: NavController, id: Int,isUser:Boolean) {
     AppScreenTemplate(
-        navController=navController,header= { ProfileHeader(id,isUser,navController) },
+        navController=navController,header= { ProfileHeader(id,isUser,navController)
+                                            LogOutButton(navController=navController)
+                                            },
     content={Column(modifier = Modifier.background(
         color =Color.Gray
     ).fillMaxSize()
 
     ) {
-       PostList(id,isUser)
+       PostList(navController,id,isUser)
 
     }}
     )
@@ -46,7 +54,7 @@ fun ProfileScreen(navController: NavController, id: Int,isUser:Boolean) {
 
 
 @Composable
-fun ProfileHeader(id: Number,isUser:Boolean,navController: NavController) {
+fun ProfileHeader(id: Int,isUser:Boolean,navController: NavController) {
     var username: String="";
     if (isUser){
         val context = LocalContext.current
@@ -59,11 +67,29 @@ fun ProfileHeader(id: Number,isUser:Boolean,navController: NavController) {
         if (user != null) {
             username= user!!.username.toString()
         }
+    }else if(id!=null) {
+
+        val context = LocalContext.current
+        val session = SessionManager(context)
+
+        var user by remember { mutableStateOf<User?>(null) }
+        LaunchedEffect(Unit) {
+            val repo = UserRepository(context)
+            user= repo.get(id)
+        }
+        if(user==null) {
+            return Text("Couldn't find user")
+        }else{
+            username = user!!.username.toString()
+        }
+
     }
     return Row(modifier = Modifier.height(80.dp)) {
         Icon(painter= painterResource(R.drawable.ic_account_box),
                 contentDescription = "",
-                tint = Color.Green)
+                tint = Color.Green,
+
+        )
         Text("Profile of: $username")
         AddPostButton(navController )
 
@@ -75,9 +101,29 @@ fun AddPostButton(navController: NavController) {
     val scope = rememberCoroutineScope()
 
     Button(onClick = {
-            navController.navigate(Screen.PostScreen.route)
+            navController.navigate(Screen.PostCreateScreen.route)
     }) {
         Text("Add post")
     }
 }
 
+@Composable
+fun LogOutButton(navController: NavController) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    Button(onClick = {
+        scope.launch {
+            val repo = AuthRepository(context)
+            val success = repo.logout()
+
+            if (success) {
+                navController.navigate(Screen.LoginScreen.route)
+            } else {
+                Toast.makeText(context, "logout failed", Toast.LENGTH_LONG).show()
+            }
+        }
+    }) {
+        Text("Logout")
+    }
+}

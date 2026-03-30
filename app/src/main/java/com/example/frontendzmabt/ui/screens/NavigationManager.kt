@@ -21,16 +21,34 @@ import com.example.frontendzmabt.ui.screens.main.HomeScreen
 import com.example.frontendzmabt.ui.screens.main.MapScreen
 import com.example.frontendzmabt.ui.screens.main.ProfileScreen
 import com.example.frontendzmabt.ui.screens.main.PostCreateScreen
+import com.example.frontendzmabt.ui.screens.main.PostScreen
+
+
+data class ProfileNavArgs(
+    val userId: Int,
+)
+fun ProfileNavArgs.toRoute(): String {
+    return "profile_screen?userId=$userId"
+}
+data class PostNavArgs(
+    val postId: Int,
+    val isUser: Boolean
+)
+fun PostNavArgs.toRoute(): String {
+    return "post_screen?postId=$postId&isUser=$isUser"
+}
 
 
 sealed class Screen(val route: String) {
     object LoginScreen: Screen("login_screen")
     object RegisterScreen: Screen("register_screen")
     object HomeScreen: Screen("home_screen")
-    object ProfileScreen: Screen("profile_screen/{userId}")
+    object ProfileScreen: Screen("profile_screen?userId={userId}")
     object UserProfileScreen: Screen("user_profile_screen")
     object MapScreen: Screen("map_screen")
-    object PostScreen: Screen("post_screen")
+    object PostCreateScreen: Screen("post_create_screen")
+    object PostScreen: Screen("post_screen?postId={postId}&isUser={isUser}")
+
 }
 enum class AppNavigation(var label:String,val route:String,val icon:Int,){
     Profile("Profile",Screen.UserProfileScreen.route,R.drawable.ic_account_box),
@@ -84,8 +102,21 @@ fun NavigationManager() {
             composable(route =Screen.MapScreen.route) {
                 MapScreen(navController)
             }
-            composable(route =Screen.PostScreen.route) {
+            composable(route =Screen.PostCreateScreen.route) {
                 PostCreateScreen(navController)
+            }
+            composable(
+                route = Screen.PostScreen.route,
+                arguments = listOf(
+                    navArgument("postId") { type = NavType.IntType },
+                    navArgument("isUser") { type = NavType.BoolType}
+                )
+            ) { backStackEntry ->
+
+                val postId= backStackEntry.arguments?.getInt("postId") ?: 0
+                val isUser= backStackEntry.arguments?.getBoolean("isUser") ?: false
+
+                PostScreen(navController, postId,isUser)
             }
 
         }
