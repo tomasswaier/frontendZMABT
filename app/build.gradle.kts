@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -20,7 +21,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String","BACKEND_API_URL","\"${property("BACKEND_API_URL")}\"")
+        buildConfigField("String","BACKEND_API_URL","\"${project.findProperty("BACKEND_API_URL")}\"")
+        buildConfigField("String","MAPS_API_KEY","\"${project.findProperty("MAPS_API_KEY")}\"")
     }
 
     buildTypes {
@@ -73,5 +75,5 @@ dependencies {
         implementation(libs.androidx.espresso.core.v370)
         implementation(libs.kotlinx.coroutines.test)
     implementation(libs.androidx.paging.compose)
-
+    implementation(libs.maps.compose)
 }
