@@ -1,6 +1,9 @@
 package com.example.frontendzmabt.ui.screens.main
 
 
+import android.R.id.list
+import android.content.ClipData
+import android.media.Image
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -8,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,10 +30,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import com.example.frontendzmabt.BuildConfig
 import com.example.frontendzmabt.R
 import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.repository.Post
 import com.example.frontendzmabt.data.repository.CommentRepository
+import com.example.frontendzmabt.data.repository.GetPostResponse
+import com.example.frontendzmabt.data.repository.PostImage
 import com.example.frontendzmabt.data.repository.PostRepository
 import com.example.frontendzmabt.ui.components.CommentList
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
@@ -44,10 +52,16 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
     val context = LocalContext.current
     val session = SessionManager(context)
 
+    var response by remember { mutableStateOf<GetPostResponse?>(null) }
     var post by remember { mutableStateOf<Post?>(null) }
+    var images  by remember { mutableStateOf<List<PostImage>?>(null) }
     LaunchedEffect(Unit) {
         val repo = PostRepository(context)
-        post= repo.get(id)
+        response = repo.get(id)
+        if(response!=null) {
+            post = response!!.post
+            images=response!!.postImages
+        }
     }
     /*if (post) {
         username= user!!.username.toString()
@@ -81,6 +95,10 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
                     Text("userId:" + post?.userId)
                 }
                 Text("userId:" + post?.description)
+                images?.count()?.let {
+                    if (it>0)
+                        PostImages(images!!)
+                }
                 Text("MAPA SEM :")
                 if (isUser) {
                     EditPostButton(navController)
@@ -93,6 +111,25 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
 
         }}
     )
+}
+
+@Composable
+fun PostImages(images: List<PostImage>){
+    return LazyRow{
+        items(count = images.count()) { index ->
+            val item = images[index % images.size]
+            println(item)
+            AsyncImage(
+                model = BuildConfig.BACKEND_API_URL+"/"+item.imagePath,
+                contentDescription = "Translated description of what the image contains"
+            )
+
+            Text(item.imagePath)
+            //ClipData.Item(item)
+        }
+    }
+
+
 }
 @Composable
 fun CommentForm(postId :Int){

@@ -21,7 +21,7 @@ class UserRepository(private val context: Context) {
         try {
             val session = SessionManager(context);
             val token=session.getToken()
-            val apiUrl = BuildConfig.BACKEND_API_URL+"/account/profile?userId=$id"
+            val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/account/profile?userId=$id"
             if (token==null|| token=="") {
                 return null
             }

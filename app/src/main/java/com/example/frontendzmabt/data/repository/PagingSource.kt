@@ -28,11 +28,11 @@ class PostPagingSource(
             }
             var apiUrl="";
             if (this.isUser) {
-                apiUrl = BuildConfig.BACKEND_API_URL + "/posts/getPageUser?page=$page"
+                apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION + "/posts/getPageUser?page=$page"
             }else if( this.id > 0){
-                apiUrl = BuildConfig.BACKEND_API_URL + "/posts/getPage?page=$page"
+                apiUrl = BuildConfig.BACKEND_API_URL +BuildConfig.API_VERSION+ "/posts/getPage?page=$page"
             }else{
-                apiUrl = BuildConfig.BACKEND_API_URL + "/posts/getPageFyp?page=$page"
+                apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION + "/posts/getPageFyp?page=$page"
             }
 
             val result = withContext(Dispatchers.IO) {
@@ -77,7 +77,7 @@ class CommentPagingSource(
             }
             var apiUrl="";
             if ( this.id > 0){
-                apiUrl = BuildConfig.BACKEND_API_URL + "/comments/getPage?page=$page&postId=$id"
+                apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION + "/comments/getPage?page=$page&postId=$id"
             }
 
             val result = withContext(Dispatchers.IO) {

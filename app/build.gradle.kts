@@ -23,6 +23,7 @@ android {
 
         buildConfigField("String","BACKEND_API_URL","\"${project.findProperty("BACKEND_API_URL")}\"")
         buildConfigField("String","MAPS_API_KEY","\"${project.findProperty("MAPS_API_KEY")}\"")
+        buildConfigField("String","API_VERSION","\"${project.findProperty("API_VERSION")}\"")
     }
 
     buildTypes {
@@ -76,4 +77,6 @@ dependencies {
         implementation(libs.kotlinx.coroutines.test)
     implementation(libs.androidx.paging.compose)
     implementation(libs.maps.compose)
+    implementation(libs.coil.compose)
+    implementation(libs.okhttp)
 }

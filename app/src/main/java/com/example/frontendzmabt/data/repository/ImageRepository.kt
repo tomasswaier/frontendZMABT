@@ -1,7 +1,5 @@
 package com.example.frontendzmabt.data.repository
 
-
-
 import com.example.frontendzmabt.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import android.content.Context
@@ -14,40 +12,13 @@ import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
-data class CommentCreateResponse(
-    val error: Boolean,
-    val message:String
-)
-/*
-data class PaginatedResponse<T>(
-    val data: List<T>,
-    val meta: Meta
-)
+class ImageRepository(private val context: Context) {
 
-data class Meta(
-    val total: Int,
-    val perPage: Int,
-    val currentPage: Int,
-    val lastPage: Int
-)
-
-*/
-data class Comment(
-    val id: Int,
-    val userId: Int,
-    val parentCommentId: Int,
-    val content: String,
-    val createdAt: String,
-    val updatedAt: String?,
-    //val stars: Int
-)
-class CommentRepository(private val context: Context) {
-    /*
-    suspend fun get(id:Int):Post?{
+    suspend fun get(id:Int): Post?{
         try {
             val session = SessionManager(context);
             val token=session.getToken()
-            val apiUrl = BuildConfig.BACKEND_API_URL+"/posts/get?postId=$id"
+            val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/posts/get?postId=$id"
             if (token==null|| token=="") {
                 return null
             }
@@ -62,14 +33,7 @@ class CommentRepository(private val context: Context) {
             e.printStackTrace()
         }
         return null;
-    }*/
-
-    fun getCommentPager(id:Int): Flow<PagingData<Comment>> {
-        return Pager(
-            config = PagingConfig(pageSize = 10),
-            pagingSourceFactory = { CommentPagingSource(context,id) }
-        ).flow
-    }
+    }/*
     suspend fun create(commentText:String,postId:Int):Boolean{
         try {
             val session = SessionManager(context);
@@ -96,7 +60,7 @@ class CommentRepository(private val context: Context) {
             e.printStackTrace()
         }
         return false;
-    }
+    }*/
 }
 
 

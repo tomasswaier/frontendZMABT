@@ -20,7 +20,7 @@ data class LoginData(
 class AuthRepository(private val context: Context) {
     suspend fun logout():Boolean{
         try {
-            val apiUrl = BuildConfig.BACKEND_API_URL+"/auth/logout"//+"/api/v1/login"
+            val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/auth/logout"//+"/api/v1/login"
             // Make network request on IO thread
             val result = withContext(Dispatchers.IO) {
                 API.callApi(apiUrl, "", "POST", "")
@@ -45,7 +45,7 @@ class AuthRepository(private val context: Context) {
         println("Username: $username")
         println("Password: $password")
         try {
-            val apiUrl = BuildConfig.BACKEND_API_URL+"/auth/login"//+"/api/v1/login"
+            val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/auth/login"//+"/api/v1/login"
             val requestBody = mapOf(
                 "username" to username,
                 "password" to password
@@ -85,7 +85,7 @@ class AuthRepository(private val context: Context) {
         println("Password: $password")
         println("Password: $passwordConfirmation")
         try {
-            val apiUrl = BuildConfig.BACKEND_API_URL+"/auth/signup"
+            val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/auth/signup"
             val requestBody = mapOf(
                 "username" to username,
                 "password" to password,

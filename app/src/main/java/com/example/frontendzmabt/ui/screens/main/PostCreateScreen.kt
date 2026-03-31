@@ -1,12 +1,18 @@
 package com.example.frontendzmabt.ui.screens.main
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -28,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.frontendzmabt.data.repository.PostRepository
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 import com.example.frontendzmabt.ui.screens.Screen
@@ -55,6 +62,7 @@ fun PostForm(navController: NavController) {
     var postText by remember { mutableStateOf("") }
     var latitude by remember { mutableStateOf(0.0) }
     var longitude by remember { mutableStateOf(0.0) }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
     Column() {
 
         TextField(
@@ -69,7 +77,50 @@ fun PostForm(navController: NavController) {
             longitude = lon
         })
         RatingPicker(rating=rating,onRatingChanged = { rating = it;println("changed rating to:"+it) })
-        SubmitPostButton(navController,postText=postText,rating=rating,longitude=longitude,latitude=latitude)
+
+        ImageUploader(
+            onImageSelected = { uri ->
+                imageUri = uri
+            }
+        )
+        SubmitPostButton(navController,postText=postText,rating=rating,longitude=longitude,latitude=latitude,imageUri=imageUri)
+    }
+}
+@Composable
+fun ImageUploader(
+    onImageSelected: (Uri) -> Unit
+) {
+    val context = LocalContext.current
+
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+            onImageSelected(it)
+        }
+    }
+
+    Column {
+        Button(onClick = {
+            launcher.launch("image/*")
+        }) {
+            Text("Select Image")
+        }
+
+        selectedImageUri?.let { uri ->
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Image(
+                painter = rememberAsyncImagePainter(uri),
+                contentDescription = "Selected Image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+            )
+        }
     }
 }
 @Composable
@@ -108,7 +159,7 @@ fun PickLocationButton(navController: NavController,latitude:Number,longitude:Nu
 }
 
 @Composable
-fun SubmitPostButton(navController: NavController,postText:String,rating:Int,longitude: Double,latitude: Double) {
+fun SubmitPostButton(navController: NavController,postText:String,rating:Int,longitude: Double,latitude: Double,imageUri: Uri?) {
     val context = LocalContext.current
     // Coroutine scope tied to the composable
     val scope = rememberCoroutineScope()
@@ -117,7 +168,7 @@ fun SubmitPostButton(navController: NavController,postText:String,rating:Int,lon
 
         scope.launch {
             val repo = PostRepository(context)
-            val success = repo.create(postText=postText,rating=rating,longitude=longitude,latitude=latitude)
+            val success = repo.create(postText=postText,rating=rating,longitude=longitude,latitude=latitude,imageUri=imageUri)
 
             if (success) {
                 navController.navigate(Screen.UserProfileScreen.route)
