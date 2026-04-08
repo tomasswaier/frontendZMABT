@@ -21,7 +21,7 @@ fun PostList(navController: NavController,id: Int, isUser: Boolean) {
     //if isUser == true then display posts of the users who's logged in
     //if id is set then display posts of user specified in id
     //if both false then display posts of all users
-
+    println("user ID is :"+id);
     val context = LocalContext.current
     val repo = remember { PostRepository(context) }
 

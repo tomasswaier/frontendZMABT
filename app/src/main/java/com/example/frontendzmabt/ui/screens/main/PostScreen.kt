@@ -80,6 +80,7 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
                 Row {
                     IconButton(
                         onClick = {
+                            println(ProfileNavArgs(post!!.userId).toRoute());
                             navController.navigate(ProfileNavArgs(post!!.userId).toRoute()) {
                                 launchSingleTop = true
                             }
@@ -152,14 +153,13 @@ fun CommentForm(postId :Int){
                 val repo = CommentRepository(context)
                 val success = repo.create(commentText,postId)
 
-                if (success) {
-                    println("comment sucessfully posted");
+                /*if (success) {
+                    println("request successfully sent");
                     //navController.navigate(Screen.HomeScreen.route)
                 } else {
-                    Toast.makeText(context, "Login failed", Toast.LENGTH_LONG).show()
-                }
+                    Toast.makeText(context, "Message failed to send internally", Toast.LENGTH_LONG).show()
+                }*/
             }
-            println("Longitude and Latitude set to 1.0")
 
         }) {
             Text("postComment")

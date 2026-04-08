@@ -39,7 +39,6 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(navController: NavController, id: Int,isUser:Boolean) {
     AppScreenTemplate(
         navController=navController,header= { ProfileHeader(id,isUser,navController)
-                                            LogOutButton(navController=navController)
                                             },
     content={Column(modifier = Modifier.background(
         color =Color.Gray
@@ -91,7 +90,10 @@ fun ProfileHeader(id: Int,isUser:Boolean,navController: NavController) {
 
         )
         Text("Profile of: $username")
+        if (isUser) {
         AddPostButton(navController )
+            LogOutButton(navController = navController)
+        }
 
     }
 }

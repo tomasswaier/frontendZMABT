@@ -30,7 +30,7 @@ class PostPagingSource(
             if (this.isUser) {
                 apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION + "/posts/getPageUser?page=$page"
             }else if( this.id > 0){
-                apiUrl = BuildConfig.BACKEND_API_URL +BuildConfig.API_VERSION+ "/posts/getPage?page=$page"
+                apiUrl = BuildConfig.BACKEND_API_URL +BuildConfig.API_VERSION+ "/posts/getPage?page=$page&userId=$id"
             }else{
                 apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION + "/posts/getPageFyp?page=$page"
             }
@@ -38,6 +38,7 @@ class PostPagingSource(
             val result = withContext(Dispatchers.IO) {
                 API.callApi(apiUrl, token, "GET", null)
             }
+            println("paging source:")
             println(result)
 
             val gson = Gson()

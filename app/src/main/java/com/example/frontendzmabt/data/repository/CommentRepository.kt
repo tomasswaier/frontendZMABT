@@ -10,7 +10,9 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.example.frontendzmabt.data.API
 import com.example.frontendzmabt.data.SessionManager
+import com.example.frontendzmabt.data.SocketManager
 import com.google.gson.Gson
+import io.socket.client.IO.socket
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
@@ -73,6 +75,7 @@ class CommentRepository(private val context: Context) {
     suspend fun create(commentText:String,postId:Int):Boolean{
         try {
             val session = SessionManager(context);
+            /*
             val token=session.getToken()
             val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/comments/create"//+"/api/v1/login"
             val requestBody = mapOf(
@@ -87,11 +90,13 @@ class CommentRepository(private val context: Context) {
             val result = withContext(Dispatchers.IO) {
                 API.callApi(apiUrl, token, "POST", requestBody)
             }
-            val gson= Gson()
+            */
+            SocketManager.sendComment(postId = postId,commentText=commentText);
+            /*val gson= Gson()
             val response= gson.fromJson(result, CommentCreateResponse::class.java)
             if (response.error==false) {
                 return true
-            }
+            }*/
         } catch (e: Exception) {
             e.printStackTrace()
         }
