@@ -6,6 +6,7 @@ import io.socket.client.Socket
 import org.json.JSONObject
 
 object SocketManager {
+    //Socker manager vygenerovla chat
 
     private lateinit var socket: Socket
 

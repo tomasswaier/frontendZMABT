@@ -41,6 +41,9 @@ data class Comment(
     val content: String,
     val createdAt: String,
     val updatedAt: String?,
+    val likeCount: Int,
+    val isLiked: Boolean?,
+
     //val stars: Int
 )
 class CommentRepository(private val context: Context) {
@@ -75,32 +78,49 @@ class CommentRepository(private val context: Context) {
     suspend fun create(commentText:String,postId:Int):Boolean{
         try {
             val session = SessionManager(context);
-            /*
-            val token=session.getToken()
-            val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/comments/create"//+"/api/v1/login"
-            val requestBody = mapOf(
-                "content" to commentText,
-                "postId" to postId,
-            )
-            println(apiUrl);
-            if (token==null|| token=="") {
-                return false
-            }
-            println(token)
-            val result = withContext(Dispatchers.IO) {
-                API.callApi(apiUrl, token, "POST", requestBody)
-            }
-            */
             SocketManager.sendComment(postId = postId,commentText=commentText);
-            /*val gson= Gson()
-            val response= gson.fromJson(result, CommentCreateResponse::class.java)
-            if (response.error==false) {
-                return true
-            }*/
         } catch (e: Exception) {
             e.printStackTrace()
         }
         return false;
+    }
+    suspend fun ChangeLikeStatus(context:Context,action:Boolean,commentId:Int):Boolean{
+        try {
+            val session = SessionManager(context)
+            val token = session.getToken()
+
+            if (token.isNullOrEmpty()) return false
+            var url="";
+            var method="";
+            if (!action) {
+                url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/comments/like"
+                method="PUT";
+            }else{
+                url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/comments/removeLike?commentId=$commentId"
+                method="DELETE";
+            }
+
+
+            val requestBody = mapOf(
+                "commentId" to commentId,
+            )
+            if (token==null|| token=="") {
+                return false
+            }
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(url, token, method, requestBody)
+            }
+            val gson= Gson()
+            val response= gson.fromJson(result, GeneralResponse::class.java)
+            if (response.error==false) {
+                return true
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return false
     }
 }
 

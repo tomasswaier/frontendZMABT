@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.frontendzmabt.data.repository.PostRepository
+import com.example.frontendzmabt.ui.components.RatingPicker
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 import com.example.frontendzmabt.ui.screens.Screen
 import kotlinx.coroutines.launch
@@ -119,29 +120,6 @@ fun ImageUploader(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-            )
-        }
-    }
-}
-@Composable
-fun RatingPicker(
-    rating: Int,
-    onRatingChanged: (Int) -> Unit,
-    maxStars: Int = 5
-) {
-    /*
-        Tuto funkciu mi vygeneroval chat
-     */
-    Row {
-        for (i in 1..maxStars) {
-            Icon(
-                imageVector = if (i <= rating) Icons.Default.Star else Icons.Default.StarBorder,
-                contentDescription = "Star $i",
-                modifier = Modifier
-                    .size(32.dp)
-                    .clickable {
-                        onRatingChanged(i)
-                    }
             )
         }
     }

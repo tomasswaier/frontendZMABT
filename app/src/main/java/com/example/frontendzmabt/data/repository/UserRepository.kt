@@ -15,13 +15,19 @@ import kotlinx.coroutines.withContext
 
 import com.example.frontendzmabt.data.User
 
+data class GetUserResponse(
+    val user: User,
+    val isFollowing:Boolean
+)
+
+
 class UserRepository(private val context: Context) {
 
-    suspend fun get(id:Int):User?{
+    suspend fun get(id:Int):GetUserResponse?{
         try {
             val session = SessionManager(context);
             val token=session.getToken()
-            val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/account/profile?userId=$id"
+            val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/account/get?userId=$id"
             if (token==null|| token=="") {
                 return null
             }
@@ -30,12 +36,53 @@ class UserRepository(private val context: Context) {
             }
             println(result)
             val gson= Gson()
-            val response= gson.fromJson(result, User::class.java)
+            val response= gson.fromJson(result, GetUserResponse::class.java)
+
+            println(response)
             return response
         } catch (e: Exception) {
             e.printStackTrace()
         }
         return null;
+    }
+    suspend fun ChangeFollowStatus(
+        changeFollowStatus: Boolean,
+        userId:Int
+    ): Boolean {
+        try {
+            val session = SessionManager(context)
+            val token = session.getToken()
+
+            if (token.isNullOrEmpty()) return false
+            var url="";
+            if (!changeFollowStatus) {
+                url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/account/follow"
+            }else{
+                url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/account/unfollow"
+            }
+
+
+            val requestBody = mapOf(
+                "userId" to userId,
+            )
+            if (token==null|| token=="") {
+                return false
+            }
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(url, token, "POST", requestBody)
+            }
+            println(result)
+            val gson= Gson()
+            val response= gson.fromJson(result, GeneralResponse::class.java)
+            if (response.error==false) {
+                return true
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return false
     }
 }
 

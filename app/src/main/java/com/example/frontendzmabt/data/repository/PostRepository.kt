@@ -5,6 +5,7 @@ import com.example.frontendzmabt.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -20,7 +21,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 
-data class PostCreateResponse(
+data class GeneralResponse(
     val error: Boolean,
     val message:String
 )
@@ -78,6 +79,43 @@ class PostRepository(private val context: Context) {
         }
         return null;
     }
+
+    suspend fun rate(
+        rating: Int,
+        postId:Int
+    ): Boolean {
+        try {
+            val session = SessionManager(context)
+            val token = session.getToken()
+
+            if (token.isNullOrEmpty()) return false
+
+            val url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/posts/rate"
+
+            val requestBody = mapOf(
+                "stars" to rating,
+                "postId" to postId,
+            )
+            if (token==null|| token=="") {
+                return false
+            }
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(url, token, "PUT", requestBody)
+            }
+            println(result)
+            val gson= Gson()
+            val response= gson.fromJson(result, GeneralResponse::class.java)
+            if (response.error==false) {
+                return true
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return false
+    }
+
     suspend fun create(
         postText: String,
         rating: Int,
@@ -134,7 +172,7 @@ class PostRepository(private val context: Context) {
             println(responseBody)
 
             val gson = Gson()
-            val parsed = gson.fromJson(responseBody, PostCreateResponse::class.java)
+            val parsed = gson.fromJson(responseBody, GeneralResponse::class.java)
 
             return parsed.error == false
 

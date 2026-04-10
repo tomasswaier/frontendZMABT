@@ -1,21 +1,16 @@
 package com.example.frontendzmabt.ui.screens.main
 
 
-import android.R.id.list
-import android.content.ClipData
-import android.media.Image
-import android.widget.Toast
+import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -40,6 +35,7 @@ import com.example.frontendzmabt.data.repository.GetPostResponse
 import com.example.frontendzmabt.data.repository.PostImage
 import com.example.frontendzmabt.data.repository.PostRepository
 import com.example.frontendzmabt.ui.components.CommentList
+import com.example.frontendzmabt.ui.components.RatingPicker
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 import com.example.frontendzmabt.ui.screens.Screen
 import com.example.frontendzmabt.ui.screens.ProfileNavArgs
@@ -51,7 +47,9 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
 
     val context = LocalContext.current
     val session = SessionManager(context)
+    val scope = rememberCoroutineScope()
 
+    var rating by remember { mutableStateOf(0) }
     var response by remember { mutableStateOf<GetPostResponse?>(null) }
     var post by remember { mutableStateOf<Post?>(null) }
     var images  by remember { mutableStateOf<List<PostImage>?>(null) }
@@ -63,6 +61,7 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
             images=response!!.postImages
         }
     }
+    //TODO add user rating to the post quest
     /*if (post) {
         username= user!!.username.toString()
     }*/
@@ -103,6 +102,16 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
                 Text("MAPA SEM :")
                 if (isUser) {
                     EditPostButton(navController)
+                }else {
+                    RatingPicker(rating=rating,onRatingChanged = { rating = it;
+
+                        scope.launch {
+                            val success = ChangeRating(context, rating=rating,postId=id)
+                            println("Rating changed: $success")
+                        }
+
+                    })
+
                 }
                 CommentForm(id)
                 CommentList(navController, id)
@@ -112,6 +121,10 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
 
         }}
     )
+}
+suspend fun ChangeRating(context: Context, rating: Int,postId:Int): Boolean {
+    val repo = PostRepository(context)
+    return repo.rate(rating,postId)
 }
 
 @Composable

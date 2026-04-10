@@ -1,11 +1,20 @@
 package com.example.frontendzmabt.ui.screens.main
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BookmarkAdded
+import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.HeartBroken
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -26,9 +35,11 @@ import com.example.frontendzmabt.R
 import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.User
 import com.example.frontendzmabt.data.repository.AuthRepository
+import com.example.frontendzmabt.data.repository.GetUserResponse
 import com.example.frontendzmabt.data.repository.Post
 import com.example.frontendzmabt.data.repository.PostRepository
 import com.example.frontendzmabt.data.repository.UserRepository
+import com.example.frontendzmabt.ui.components.ChangeStatusBoolean
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 import com.example.frontendzmabt.ui.screens.Screen
 import com.example.frontendzmabt.ui.components.PostList
@@ -55,8 +66,10 @@ fun ProfileScreen(navController: NavController, id: Int,isUser:Boolean) {
 @Composable
 fun ProfileHeader(id: Int,isUser:Boolean,navController: NavController) {
     var username: String="";
+    val context = LocalContext.current
+    var isFollowing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     if (isUser){
-        val context = LocalContext.current
         val session = SessionManager(context)
 
         var user by remember { mutableStateOf<User?>(null) }
@@ -68,20 +81,24 @@ fun ProfileHeader(id: Int,isUser:Boolean,navController: NavController) {
         }
     }else if(id!=null) {
 
-        val context = LocalContext.current
-        val session = SessionManager(context)
+        var response by remember { mutableStateOf<GetUserResponse?>(null) }
 
-        var user by remember { mutableStateOf<User?>(null) }
-        LaunchedEffect(Unit) {
+        LaunchedEffect(id) {
             val repo = UserRepository(context)
-            user= repo.get(id)
-        }
-        if(user==null) {
-            return Text("Couldn't find user")
-        }else{
-            username = user!!.username.toString()
+            response = repo.get(id)
         }
 
+        LaunchedEffect(response) {
+            if (response != null) {
+                isFollowing = response!!.isFollowing
+            }
+        }
+
+        if (response == null) {
+            return Text("Loading ...")
+        }
+
+        username = response!!.user!!.username.toString()
     }
     return Row(modifier = Modifier.height(80.dp)) {
         Icon(painter= painterResource(R.drawable.ic_account_box),
@@ -91,17 +108,34 @@ fun ProfileHeader(id: Int,isUser:Boolean,navController: NavController) {
         )
         Text("Profile of: $username")
         if (isUser) {
-        AddPostButton(navController )
+            AddPostButton(navController )
             LogOutButton(navController = navController)
+        }else {
+            ChangeStatusBoolean(
+                Icons.Default.BookmarkAdded, Icons.Default.BookmarkBorder, !isFollowing,
+                onClick= {
+                    println("func executed")
+                    scope.launch {
+                        ChangeStatus(context, action = isFollowing, userId = id)
+                    }
+                    isFollowing = !isFollowing;
+
+                }
+            )
         }
 
     }
 }
+
+suspend fun ChangeStatus(context: Context,action:Boolean,userId:Int): Boolean {
+
+    val repo = UserRepository(context)
+    repo.ChangeFollowStatus(action,userId=userId)
+    return true
+
+}
 @Composable
 fun AddPostButton(navController: NavController) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-
     Button(onClick = {
             navController.navigate(Screen.PostCreateScreen.route)
     }) {
@@ -128,4 +162,7 @@ fun LogOutButton(navController: NavController) {
     }) {
         Text("Logout")
     }
+}
+fun changeFollowStatus(){
+
 }
