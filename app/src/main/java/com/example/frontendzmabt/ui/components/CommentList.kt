@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BookmarkAdded
-import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.ThumbUpOffAlt
 import androidx.compose.material3.Text
@@ -26,7 +24,6 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.frontendzmabt.data.SocketManager
 import com.example.frontendzmabt.data.repository.Comment
 import com.example.frontendzmabt.data.repository.CommentRepository
-import com.example.frontendzmabt.data.repository.UserRepository
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -78,13 +75,11 @@ fun CommentList(navController: NavController,id: Int) {
             items(lazyPagingItems.itemCount) { index ->
                 val comment = lazyPagingItems[index];
                 var isLiked by remember { mutableStateOf(false) }
-
-                    LaunchedEffect(comment) {
-                        if (comment!=null) {
-                            isLiked = comment.isLiked!!;
-                        }
+                LaunchedEffect(comment) {
+                    if (comment!=null) {
+                        isLiked = comment.isLiked!!;
                     }
-
+                }
                 if (comment!=null ) {
                     Row() {
                         Text(comment.content)
