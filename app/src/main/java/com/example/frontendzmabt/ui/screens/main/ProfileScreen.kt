@@ -3,18 +3,13 @@ package com.example.frontendzmabt.ui.screens.main
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BookmarkAdded
 import androidx.compose.material.icons.filled.BookmarkBorder
-import androidx.compose.material.icons.filled.HeartBroken
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -36,8 +31,6 @@ import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.User
 import com.example.frontendzmabt.data.repository.AuthRepository
 import com.example.frontendzmabt.data.repository.GetUserResponse
-import com.example.frontendzmabt.data.repository.Post
-import com.example.frontendzmabt.data.repository.PostRepository
 import com.example.frontendzmabt.data.repository.UserRepository
 import com.example.frontendzmabt.ui.components.ChangeStatusBoolean
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
@@ -51,9 +44,11 @@ fun ProfileScreen(navController: NavController, id: Int,isUser:Boolean) {
     AppScreenTemplate(
         navController=navController,header= { ProfileHeader(id,isUser,navController)
                                             },
-    content={Column(modifier = Modifier.background(
-        color =Color.Gray
-    ).fillMaxSize()
+    content={Column(modifier = Modifier
+        .background(
+            color = Color.Gray
+        )
+        .fillMaxSize()
 
     ) {
        PostList(navController,id,isUser)
@@ -65,7 +60,7 @@ fun ProfileScreen(navController: NavController, id: Int,isUser:Boolean) {
 
 @Composable
 fun ProfileHeader(id: Int,isUser:Boolean,navController: NavController) {
-    var username: String="";
+    var username by remember { mutableStateOf("") }
     val context = LocalContext.current
     var isFollowing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -77,9 +72,9 @@ fun ProfileHeader(id: Int,isUser:Boolean,navController: NavController) {
             user = session.getUser()
         }
         if (user != null) {
-            username= user!!.username.toString()
+            username= user?.username.toString()
         }
-    }else if(id!=null) {
+    }else {
 
         var response by remember { mutableStateOf<GetUserResponse?>(null) }
 
@@ -89,45 +84,49 @@ fun ProfileHeader(id: Int,isUser:Boolean,navController: NavController) {
         }
 
         LaunchedEffect(response) {
-            if (response != null) {
-                isFollowing = response!!.isFollowing
+            val currentResponse = response
+
+            if (currentResponse != null) {
+                isFollowing = currentResponse.isFollowing
             }
         }
-
-        if (response == null) {
+        if (response == null ) {
             return Text("Loading ...")
+        }else {
+            username = response?.user?.username.toString()
         }
-
-        username = response!!.user!!.username.toString()
     }
-    return Row(modifier = Modifier.height(80.dp)) {
-        Icon(painter= painterResource(R.drawable.ic_account_box),
-                contentDescription = "",
-                tint = Color.Green,
+    return Column{
+        Row(modifier = Modifier.height(80.dp)) {
+            Icon(painter= painterResource(R.drawable.ic_account_box),
+                    contentDescription = "",
+                    tint = Color.Green,
 
-        )
-        Text("Profile of: $username")
-        if (isUser) {
+            )
+            Text("Profile of: $username")
+            if (!isUser) {
+                ChangeStatusBoolean(
+                    Icons.Default.BookmarkAdded, Icons.Default.BookmarkBorder, !isFollowing,
+                    onClick= {
+                        println("func executed")
+                        scope.launch {
+                            changeStatus(context, action = isFollowing, userId = id)
+                        }
+                        isFollowing = !isFollowing
+
+                    }
+                )
+            }
+
+        }
+        if(isUser) {
             AddPostButton(navController )
             LogOutButton(navController = navController)
-        }else {
-            ChangeStatusBoolean(
-                Icons.Default.BookmarkAdded, Icons.Default.BookmarkBorder, !isFollowing,
-                onClick= {
-                    println("func executed")
-                    scope.launch {
-                        ChangeStatus(context, action = isFollowing, userId = id)
-                    }
-                    isFollowing = !isFollowing;
-
-                }
-            )
         }
-
     }
 }
 
-suspend fun ChangeStatus(context: Context,action:Boolean,userId:Int): Boolean {
+suspend fun changeStatus(context: Context,action:Boolean,userId:Int): Boolean {
 
     val repo = UserRepository(context)
     repo.ChangeFollowStatus(action,userId=userId)
@@ -162,7 +161,4 @@ fun LogOutButton(navController: NavController) {
     }) {
         Text("Logout")
     }
-}
-fun changeFollowStatus(){
-
 }

@@ -1,4 +1,5 @@
 package com.example.frontendzmabt.ui.screens
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -62,8 +63,23 @@ enum class AppNavigation(var label:String,val route:String,val icon:Int,){
 @Composable
 fun NavigationManager() {
     val navController = rememberNavController()
+    var isLoading by remember { mutableStateOf(true) }
+    var isLoggedIn by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        val session = SessionManager(context)
+        val user = session.getUser()
 
-    NavHost(navController = navController, startDestination ="auth") {
+        isLoggedIn = user?.id != null
+        isLoading = false
+    }
+    if (isLoading) {
+        Text("Loading...") // or splash screen
+        return
+    }
+
+    val startDestination = if (isLoggedIn) "main" else "auth"
+    NavHost(navController = navController, startDestination =startDestination) {
         navigation(startDestination = Screen.LoginScreen.route, route = "auth") {
             composable(route =Screen.LoginScreen.route) {
                 LoginScreen(navController);
@@ -121,15 +137,6 @@ fun NavigationManager() {
 
         }
     }
-    val context = LocalContext.current
-    val session = SessionManager(context)
 
-    var user by remember { mutableStateOf<User?>(null) }
-    LaunchedEffect(Unit) {
-        user = session.getUser()
-    }
-    if(user!=null && user?.id!=null) {
-        navController.navigate(Screen.HomeScreen.route)
-    }
 
 }

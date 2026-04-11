@@ -76,8 +76,8 @@ fun CommentList(navController: NavController,id: Int) {
                 val comment = lazyPagingItems[index];
                 var isLiked by remember { mutableStateOf(false) }
                 LaunchedEffect(comment) {
-                    if (comment!=null) {
-                        isLiked = comment.isLiked!!;
+                    if (comment!=null && comment.isLiked!=null) {
+                        isLiked = comment.isLiked;
                     }
                 }
                 if (comment!=null ) {

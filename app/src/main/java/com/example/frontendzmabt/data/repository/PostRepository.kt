@@ -142,18 +142,19 @@ class PostRepository(private val context: Context) {
 
             if(imageUri!=null){
                 val imageRequestBody = uriToRequestBody(context, imageUri)
-
-                val imagePart = MultipartBody.Part.createFormData(
-                    "image",
-                    "upload.jpg",
-                    imageRequestBody
-                )
-                requestBody
-                    .addFormDataPart(
+                if (imageRequestBody!=null) {
+                    val imagePart = MultipartBody.Part.createFormData(
                         "image",
                         "upload.jpg",
                         imageRequestBody
                     )
+                    requestBody
+                        .addFormDataPart(
+                            "image",
+                            "upload.jpg",
+                            imageRequestBody
+                        )
+                }
             }
             val xd=requestBody.build()
 
@@ -188,10 +189,12 @@ class PostRepository(private val context: Context) {
             pagingSourceFactory = { PostPagingSource(context,id,isUser) }
         ).flow
     }
-    fun uriToRequestBody(context: Context, uri: Uri): RequestBody {
-        val inputStream = context.contentResolver.openInputStream(uri)!!
-        val bytes = inputStream.readBytes()
-        return bytes.toRequestBody("image/*".toMediaTypeOrNull())
+    fun uriToRequestBody(context: Context, uri: Uri): RequestBody? {
+        val inputStream = context.contentResolver.openInputStream(uri)
+
+        val bytes = inputStream?.readBytes()
+
+        return bytes?.toRequestBody("image/*".toMediaTypeOrNull())
     }
 }
 

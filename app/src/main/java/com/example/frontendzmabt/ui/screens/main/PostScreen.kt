@@ -57,14 +57,11 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
         val repo = PostRepository(context)
         response = repo.get(id)
         if(response!=null) {
-            post = response!!.post
-            images=response!!.postImages
+            post = response?.post
+            images=response?.postImages
         }
     }
     //TODO add user rating to the post quest
-    /*if (post) {
-        username= user!!.username.toString()
-    }*/
     AppScreenTemplate(
         navController=navController,header= {},
         content={Column(modifier = Modifier.background(
@@ -73,16 +70,16 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
 
         ) {
             //PostList(id,isUser)
-            if (post==null){
+            var currentPost=post
+            if (currentPost==null){
                 Text("Failed to load post")
             }else {
                 Row {
                     IconButton(
                         onClick = {
-                            println(ProfileNavArgs(post!!.userId).toRoute());
-                            navController.navigate(ProfileNavArgs(post!!.userId).toRoute()) {
-                                launchSingleTop = true
-                            }
+                                navController.navigate(ProfileNavArgs(currentPost.userId).toRoute()) {
+                                    launchSingleTop = true
+                                }
                         }
                     ) {
                         Icon(
@@ -92,12 +89,12 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
 
                             )
                     }
-                    Text("userId:" + post?.userId)
+                    Text("userId:" + currentPost.userId)
                 }
-                Text("userId:" + post?.description)
-                images?.count()?.let {
-                    if (it>0)
-                        PostImages(images!!)
+                Text("userId:" + currentPost.description)
+
+                images?.takeIf { it.isNotEmpty() }?.let {
+                    PostImages(it)
                 }
                 Text("MAPA SEM :")
                 if (isUser) {
