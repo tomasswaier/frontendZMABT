@@ -31,7 +31,7 @@ class SessionManager(private val context: Context
     suspend fun getUser(): User {
         val prefs = context.dataStore.data.first()
         return User(
-            id = prefs[USERID]?.toInt(),
+            id = prefs[USERID]?.toDoubleOrNull()?.toInt(),
             username = prefs[USERNAME],
             email = prefs[USEREMAIL],
             createdAt = "",

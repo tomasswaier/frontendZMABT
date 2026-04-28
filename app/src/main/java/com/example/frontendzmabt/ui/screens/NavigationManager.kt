@@ -13,12 +13,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import com.example.frontendzmabt.R
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.User
 import com.example.frontendzmabt.ui.screens.auth.LoginScreen
 import com.example.frontendzmabt.ui.screens.auth.RegisterScreen
 import com.example.frontendzmabt.ui.screens.main.HomeScreen
+import com.example.frontendzmabt.ui.screens.main.LocationPickerScreen
 import com.example.frontendzmabt.ui.screens.main.MapScreen
 import com.example.frontendzmabt.ui.screens.main.ProfileScreen
 import com.example.frontendzmabt.ui.screens.main.PostCreateScreen
@@ -49,13 +54,13 @@ sealed class Screen(val route: String) {
     object MapScreen: Screen("map_screen")
     object PostCreateScreen: Screen("post_create_screen")
     object PostScreen: Screen("post_screen?postId={postId}&isUser={isUser}")
+    object LocationPickerScreen: Screen("location_picker_screen")
 
 }
-enum class AppNavigation(var label:String,val route:String,val icon:Int,){
-    Profile("Profile",Screen.UserProfileScreen.route,R.drawable.ic_account_box),
-    HOME("Home",Screen.HomeScreen.route,R.drawable.ic_home),
-    MAP("Map",Screen.MapScreen.route,R.drawable.ic_launcher_background),
-    //Home("Home",R.drawable.ic_home),
+enum class AppNavigation(var label: String, val route: String, val icon: ImageVector) {
+    HOME("FEED", Screen.HomeScreen.route, Icons.Default.Home),
+    MAP("MAP", Screen.MapScreen.route, Icons.Default.Map),
+    Profile("PROFILE", Screen.UserProfileScreen.route, Icons.Default.Person),
 
 }
 
@@ -118,8 +123,11 @@ fun NavigationManager() {
             composable(route =Screen.MapScreen.route) {
                 MapScreen(navController)
             }
-            composable(route =Screen.PostCreateScreen.route) {
+            composable(route = Screen.PostCreateScreen.route) {
                 PostCreateScreen(navController)
+            }
+            composable(route = Screen.LocationPickerScreen.route) {
+                LocationPickerScreen(navController)
             }
             composable(
                 route = Screen.PostScreen.route,

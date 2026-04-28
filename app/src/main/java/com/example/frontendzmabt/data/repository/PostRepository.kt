@@ -42,6 +42,11 @@ data class GetPostResponse(
     val postImages: List<PostImage>
 )
 
+data class PostUser(
+    val id: Int,
+    val username: String
+)
+
 data class Post(
     val id: Int,
     val userId: Int,
@@ -49,7 +54,8 @@ data class Post(
     val description: String,
     val createdAt: String,
     val updatedAt: String?,
-    val stars: Int
+    val stars: Int,
+    val user: PostUser? = null
 )
 data class PostImage(
     val id:Int,

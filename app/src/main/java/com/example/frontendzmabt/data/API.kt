@@ -18,6 +18,8 @@ class API {
                 val url = URL(apiUrl)
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = httpMethod // Set the HTTP method (GET, POST, PUT, DELETE)
+                connection.connectTimeout = 10000
+                connection.readTimeout = 10000
 
                 // Set request headers for JSON format and authorization
                 connection.setRequestProperty("Content-Type", "application/json")
@@ -25,7 +27,7 @@ class API {
                 connection.setRequestProperty("Authorization", "Bearer $token")
 
                 // Send request body for POST/PUT methods
-                if (httpMethod == "POST" || httpMethod == "PUT") {
+                if (httpMethod == "POST" || httpMethod == "PUT" || httpMethod == "PATCH") {
                     connection.doOutput = true
                     requestModel?.let {
                         val jsonInput = Gson().toJson(it)

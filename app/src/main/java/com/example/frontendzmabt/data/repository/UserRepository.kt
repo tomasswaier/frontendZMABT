@@ -23,28 +23,48 @@ data class GetUserResponse(
 
 class UserRepository(private val context: Context) {
 
-    suspend fun get(id:Int):GetUserResponse?{
-        try {
-            val session = SessionManager(context);
-            val token=session.getToken()
-            val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/account/get?userId=$id"
-            if (token==null|| token=="") {
-                return null
-            }
-            val result = withContext(Dispatchers.IO) {
-                API.callApi(apiUrl, token, "GET", "")
-            }
+    suspend fun get(id: Int): GetUserResponse? {
+        return try {
+            val token = SessionManager(context).getToken() ?: return null
+            val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/account/get?userId=$id"
+            val result = withContext(Dispatchers.IO) { API.callApi(url, token, "GET", "") }
             println(result)
-            val gson= Gson()
-            val response= gson.fromJson(result, GetUserResponse::class.java)
+            Gson().fromJson(result, GetUserResponse::class.java)
+        } catch (e: Exception) { e.printStackTrace(); null }
+    }
 
-            println(response)
-            return response
+    suspend fun getOwnProfile(): GetUserResponse? {
+        return try {
+            val token = SessionManager(context).getToken() ?: return null
+            val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/account/profile"
+            val result = withContext(Dispatchers.IO) { API.callApi(url, token, "GET", "") }
+            println("getOwnProfile response: $result")
+            val user = Gson().fromJson(result, User::class.java)
+            if (user?.username != null) {
+                GetUserResponse(user = user, isFollowing = false)
+            } else {
+                // fallback: skús wrapper format { user: {...} }
+                Gson().fromJson(result, GetUserResponse::class.java)
+            }
+        } catch (e: Exception) { e.printStackTrace(); null }
+    }
+    suspend fun updateBio(bio: String): Boolean {
+        return try {
+            val session = SessionManager(context)
+            val token = session.getToken()
+            if (token.isNullOrEmpty()) return false
+            val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/account/updateBio"
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(url, token, "PATCH", mapOf("bio" to bio))
+            }
+            val response = Gson().fromJson(result, GeneralResponse::class.java)
+            response.error == false
         } catch (e: Exception) {
             e.printStackTrace()
+            false
         }
-        return null;
     }
+
     suspend fun ChangeFollowStatus(
         changeFollowStatus: Boolean,
         userId:Int

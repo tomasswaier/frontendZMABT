@@ -96,6 +96,17 @@ class AuthRepository(private val context: Context) {
                 API.callApi(apiUrl, "", "POST", requestBody)
             }
 
+            println(result)
+
+            // Skontroluj či je to JSON objekt, nie string
+            if (!result.trimStart().startsWith("{")) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, result, Toast.LENGTH_LONG).show()
+                }
+                return false
+            }
+
+
             val gson= Gson()
             val response= gson.fromJson(result,LoginResponse::class.java)
             val session= SessionManager(context);
@@ -105,9 +116,10 @@ class AuthRepository(private val context: Context) {
                 response.data.user.email,
                         response.data.user.id
             )
-            println(result);
             return true
         } catch (e: Exception) {
+            println("REGISTER ERROR: ${e.message}")
+            println("REGISTER CAUSE: ${e.cause}")
             withContext(Dispatchers.Main) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             }
