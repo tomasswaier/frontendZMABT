@@ -35,16 +35,13 @@ object SocketManager {
     fun getSocket(): Socket {
         return socket
     }
-    fun sendComment(postId: Int, commentText: String): Boolean {
-
-        val data = mapOf(
-            "postId" to postId,
-            "content" to commentText,
-            //put("commentId", JSONObject.NULL) // for replies later
-        );
-
-
-        socket.emit("saveComment", JSONObject(data).toString())
+    fun sendComment(postId: Int, commentText: String, commentId: Int? = null): Boolean {
+        val data = JSONObject()
+        data.put("postId", postId)
+        data.put("content", commentText)
+        if (commentId != null) data.put("commentId", commentId)
+        println("sendComment payload: ${data.toString()}")
+        socket.emit("saveComment", data.toString())
         return true
     }
     fun joinPost(postId:Int) {

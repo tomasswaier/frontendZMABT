@@ -22,7 +22,7 @@ class API {
                 connection.readTimeout = 10000
 
                 // Set request headers for JSON format and authorization
-                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
                 connection.setRequestProperty("Accept", "application/json")
                 connection.setRequestProperty("Authorization", "Bearer $token")
 
@@ -31,7 +31,7 @@ class API {
                     connection.doOutput = true
                     requestModel?.let {
                         val jsonInput = Gson().toJson(it)
-                        OutputStreamWriter(connection.outputStream).use { os ->
+                        OutputStreamWriter(connection.outputStream, Charsets.UTF_8).use { os ->
                             os.write(jsonInput)
                             os.flush()
                         }

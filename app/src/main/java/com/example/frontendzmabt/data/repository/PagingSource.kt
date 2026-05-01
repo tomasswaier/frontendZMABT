@@ -106,3 +106,35 @@ class CommentPagingSource(
         return state.anchorPosition
     }
 }
+
+class PlacePagingSource(
+    private val context: Context,
+    private val placeId: Int,
+) : PagingSource<Int, Post>() {
+
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Post> {
+        return try {
+            val page = params.key ?: 1
+            val token = SessionManager(context).getToken()
+            if (token.isNullOrEmpty()) return LoadResult.Page(emptyList(), null, null)
+
+            val apiUrl = BuildConfig.BACKEND_API_URL + BuildConfig.API_VERSION +
+                    "/posts/getPagePlace?page=$page&placeId=$placeId"
+
+            val result = withContext(Dispatchers.IO) { API.callApi(apiUrl, token, "GET", null) }
+
+            val type = object : TypeToken<PaginatedResponse<Post>>() {}.type
+            val response: PaginatedResponse<Post> = Gson().fromJson(result, type)
+
+            LoadResult.Page(
+                data = response.data,
+                prevKey = if (page == 1) null else page - 1,
+                nextKey = if (page < response.meta.lastPage) page + 1 else null
+            )
+        } catch (e: Exception) {
+            LoadResult.Error(e)
+        }
+    }
+
+    override fun getRefreshKey(state: PagingState<Int, Post>): Int? = state.anchorPosition
+}

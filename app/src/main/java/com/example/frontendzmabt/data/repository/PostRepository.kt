@@ -189,6 +189,13 @@ class PostRepository(private val context: Context) {
 
         return false
     }
+    fun getPlacePostsPager(placeId: Int): Flow<PagingData<Post>> {
+        return Pager(
+            config = PagingConfig(pageSize = 10),
+            pagingSourceFactory = { PlacePagingSource(context, placeId) }
+        ).flow
+    }
+
     fun getPostsPager(id:Int,isUser:Boolean): Flow<PagingData<Post>> {
         return Pager(
             config = PagingConfig(pageSize = 10),

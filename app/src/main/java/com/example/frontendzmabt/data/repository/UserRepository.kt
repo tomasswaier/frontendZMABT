@@ -20,6 +20,9 @@ data class GetUserResponse(
     val isFollowing:Boolean
 )
 
+private data class ProfileResponse(val data: ProfileData)
+private data class ProfileData(val user: User)
+
 
 class UserRepository(private val context: Context) {
 
@@ -38,14 +41,8 @@ class UserRepository(private val context: Context) {
             val token = SessionManager(context).getToken() ?: return null
             val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/account/profile"
             val result = withContext(Dispatchers.IO) { API.callApi(url, token, "GET", "") }
-            println("getOwnProfile response: $result")
-            val user = Gson().fromJson(result, User::class.java)
-            if (user?.username != null) {
-                GetUserResponse(user = user, isFollowing = false)
-            } else {
-                // fallback: skús wrapper format { user: {...} }
-                Gson().fromJson(result, GetUserResponse::class.java)
-            }
+            val user = Gson().fromJson(result, ProfileResponse::class.java)?.data?.user
+            if (user != null) GetUserResponse(user = user, isFollowing = false) else null
         } catch (e: Exception) { e.printStackTrace(); null }
     }
     suspend fun updateBio(bio: String): Boolean {

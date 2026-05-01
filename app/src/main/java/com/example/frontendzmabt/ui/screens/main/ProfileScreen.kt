@@ -325,7 +325,7 @@ private fun ProfileHeaderContent(
     }
 }
 
-// Zachované pre spätnú kompatibilitu
+
 @Composable
 fun ProfileHeader(id: Int, isUser: Boolean, navController: NavController) {}
 

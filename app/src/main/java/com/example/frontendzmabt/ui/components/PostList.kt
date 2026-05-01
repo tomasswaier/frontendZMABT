@@ -124,7 +124,7 @@ fun PostList(
 }
 
 @Composable
-private fun PostCard(
+internal fun PostCard(
     postId: Int,
     userId: Int,
     username: String?,
