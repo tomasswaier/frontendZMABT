@@ -109,7 +109,9 @@ class AuthRepository(private val context: Context) {
 
             val gson= Gson()
             val response= gson.fromJson(result,LoginResponse::class.java)
+            println(response)
             val session= SessionManager(context);
+
             session.saveToken(
                 response.data.token,
                 response.data.user.username,
@@ -128,6 +130,36 @@ class AuthRepository(private val context: Context) {
 
 
 
+    }
+    suspend fun loginWithGoogle(idToken: String): Boolean {
+        try {
+            val apiUrl = BuildConfig.BACKEND_API_URL + BuildConfig.API_VERSION + "/auth/google"
+
+            val requestBody = mapOf(
+                "idToken" to idToken
+            )
+
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(apiUrl, "", "POST", requestBody)
+            }
+
+            val gson = Gson()
+            val response = gson.fromJson(result, LoginResponse::class.java)
+
+            val session = SessionManager(context)
+
+            session.saveToken(
+                response.data.token,
+                response.data.user.username,
+                response.data.user.email,
+                response.data.user.id
+            )
+
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return false
     }
 }
 fun validateRegister(username:String,password:String,passwordConfirmation: String,email: String):Boolean {

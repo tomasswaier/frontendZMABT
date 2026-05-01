@@ -39,7 +39,7 @@ fun CommentList(navController: NavController,id: Int) {
     val scope = rememberCoroutineScope()
     val pagerFlow = remember { repo.getCommentPager(id) }
     val lazyPagingItems = pagerFlow.collectAsLazyPagingItems()
-    SocketManager.joinPost(id)
+
     val liveComments = remember { mutableStateListOf<Comment>() }
     LaunchedEffect(id) {
         SocketManager.joinPost(id)
