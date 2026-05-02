@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -23,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.repository.Place
 import com.example.frontendzmabt.data.repository.PlaceRepository
 import com.example.frontendzmabt.data.repository.PostRepository
@@ -41,24 +42,22 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 
-private val SheetBg   = Color(0xFFF0F9FA)
-private val TealColor = Color(0xFF00535A)
-private val TextMain  = Color(0xFF0D2C2E)
-private val TextGray  = Color(0xFF78909C)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(navController: NavController) {
     val context = LocalContext.current
     var places by remember { mutableStateOf<List<Place>>(emptyList()) }
     var selectedPlace by remember { mutableStateOf<Place?>(null) }
+    var ownUserId by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
         places = PlaceRepository(context).getAll()
+        ownUserId = SessionManager(context).getUser().id?.toInt() ?: 0
     }
 
     if (selectedPlace != null) {
         val place = selectedPlace!!
+        val colors = MaterialTheme.colorScheme
         val repo = remember(place.id) { PostRepository(context) }
         val pagerFlow = remember(place.id) { repo.getPlacePostsPager(place.id) }
         val lazyPagingItems = pagerFlow.collectAsLazyPagingItems()
@@ -66,7 +65,7 @@ fun MapScreen(navController: NavController) {
         ModalBottomSheet(
             onDismissRequest = { selectedPlace = null },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
-            containerColor = SheetBg
+            containerColor = colors.background
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
@@ -78,7 +77,7 @@ fun MapScreen(navController: NavController) {
                         "Place #${place.id}",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = TextMain,
+                        color = colors.onBackground,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
                     )
                 }
@@ -88,11 +87,11 @@ fun MapScreen(navController: NavController) {
                         is LoadState.Loading -> Box(
                             Modifier.fillMaxWidth().padding(32.dp),
                             contentAlignment = Alignment.Center
-                        ) { CircularProgressIndicator(color = TealColor) }
+                        ) { CircularProgressIndicator(color = colors.primary) }
                         is LoadState.Error -> Text(
-                            "Nepodarilo sa načítať posty",
+                            "Failed to load posts",
                             modifier = Modifier.padding(16.dp),
-                            color = TextGray
+                            color = colors.onSurfaceVariant
                         )
                         else -> {}
                     }
@@ -106,8 +105,10 @@ fun MapScreen(navController: NavController) {
                             userId = post.userId,
                             username = post.user?.username,
                             description = post.description,
+                            stars = post.stars,
                             navController = navController,
-                            isUser = false
+                            isUser = false,
+                            ownUserId = ownUserId
                         )
                     }
                 }
@@ -119,7 +120,7 @@ fun MapScreen(navController: NavController) {
                             contentAlignment = Alignment.Center
                         ) {
                             CircularProgressIndicator(
-                                color = TealColor,
+                                color = colors.primary,
                                 modifier = Modifier.size(24.dp)
                             )
                         }

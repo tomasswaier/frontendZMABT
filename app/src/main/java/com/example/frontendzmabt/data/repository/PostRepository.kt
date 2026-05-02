@@ -68,11 +68,8 @@ class PostRepository(private val context: Context) {
     suspend fun get(id:Int): GetPostResponse?{
         try {
             val session = SessionManager(context);
-            val token=session.getToken()
+            val token = session.getToken() ?: ""
             val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/posts/get?postId=$id"
-            if (token==null|| token=="") {
-                return null
-            }
             val result = withContext(Dispatchers.IO) {
                 API.callApi(apiUrl, token, "GET", "")
             }
@@ -96,17 +93,14 @@ class PostRepository(private val context: Context) {
 
             if (token.isNullOrEmpty()) return false
 
-            val url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/posts/rate"
+            val url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/ratings/set"
 
             val requestBody = mapOf(
-                "stars" to rating,
                 "postId" to postId,
+                "stars" to rating,
             )
-            if (token==null|| token=="") {
-                return false
-            }
             val result = withContext(Dispatchers.IO) {
-                API.callApi(url, token, "PUT", requestBody)
+                API.callApi(url, token, "POST", requestBody)
             }
             println(result)
             val gson= Gson()
@@ -189,6 +183,21 @@ class PostRepository(private val context: Context) {
 
         return false
     }
+    suspend fun update(postId: Int, postText: String, rating: Int): Boolean {
+        return try {
+            val token = SessionManager(context).getToken() ?: return false
+            val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/posts/update"
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(url, token, "PATCH", mapOf(
+                    "postId" to postId,
+                    "postText" to postText,
+                    "rating" to rating
+                ))
+            }
+            Gson().fromJson(result, GeneralResponse::class.java)?.error == false
+        } catch (e: Exception) { e.printStackTrace(); false }
+    }
+
     fun getPlacePostsPager(placeId: Int): Flow<PagingData<Post>> {
         return Pager(
             config = PagingConfig(pageSize = 10),

@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,9 +33,6 @@ import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.ui.components.PostList
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 
-private val HomeTeal = Color(0xFF00535A)
-private val HomeBg   = Color(0xFFF0F9FA)
-
 @Composable
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
@@ -51,7 +48,7 @@ fun HomeScreen(navController: NavController) {
         navController = navController,
         header = { HomeHeader(userInitials = userInitials) },
         content = {
-            Box(modifier = Modifier.fillMaxSize().background(HomeBg)) {
+            Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                 PostList(navController, 0, false)
             }
         }
@@ -60,10 +57,11 @@ fun HomeScreen(navController: NavController) {
 
 @Composable
 fun HomeHeader(userInitials: String) {
+    val colors = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(colors.surface)
             .windowInsetsPadding(WindowInsets.statusBars)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -73,13 +71,13 @@ fun HomeHeader(userInitials: String) {
             "Share & Trail",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = HomeTeal
+            color = colors.primary
         )
 
         Box(
             modifier = Modifier
                 .size(36.dp)
-                .background(HomeTeal, CircleShape),
+                .background(colors.primary, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Text(userInitials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)

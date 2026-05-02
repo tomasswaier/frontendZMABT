@@ -17,11 +17,11 @@ import com.example.frontendzmabt.data.User
 
 data class GetUserResponse(
     val user: User,
-    val isFollowing:Boolean
+    val isFollowing: Boolean
 )
 
 private data class ProfileResponse(val data: ProfileData)
-private data class ProfileData(val user: User)
+private data class ProfileData(val user: User, val isFollowing: Boolean = false)
 
 
 class UserRepository(private val context: Context) {
@@ -29,10 +29,13 @@ class UserRepository(private val context: Context) {
     suspend fun get(id: Int): GetUserResponse? {
         return try {
             val token = SessionManager(context).getToken() ?: return null
-            val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/account/get?userId=$id"
+            val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/account/profile?userId=$id"
             val result = withContext(Dispatchers.IO) { API.callApi(url, token, "GET", "") }
-            println(result)
-            Gson().fromJson(result, GetUserResponse::class.java)
+            val direct = Gson().fromJson(result, GetUserResponse::class.java)
+            val parsed = if (direct?.user != null) direct
+                         else Gson().fromJson(result, ProfileResponse::class.java)?.data
+                             ?.let { GetUserResponse(user = it.user, isFollowing = it.isFollowing) }
+            if (parsed?.user != null) parsed else null
         } catch (e: Exception) { e.printStackTrace(); null }
     }
 
@@ -41,10 +44,11 @@ class UserRepository(private val context: Context) {
             val token = SessionManager(context).getToken() ?: return null
             val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/account/profile"
             val result = withContext(Dispatchers.IO) { API.callApi(url, token, "GET", "") }
-            val user = Gson().fromJson(result, ProfileResponse::class.java)?.data?.user
-            if (user != null) GetUserResponse(user = user, isFollowing = false) else null
+            val data = Gson().fromJson(result, ProfileResponse::class.java)?.data ?: return null
+            GetUserResponse(user = data.user, isFollowing = data.isFollowing)
         } catch (e: Exception) { e.printStackTrace(); null }
     }
+
     suspend fun updateBio(bio: String): Boolean {
         return try {
             val session = SessionManager(context)
@@ -64,43 +68,26 @@ class UserRepository(private val context: Context) {
 
     suspend fun ChangeFollowStatus(
         changeFollowStatus: Boolean,
-        userId:Int
+        userId: Int
     ): Boolean {
         try {
             val session = SessionManager(context)
             val token = session.getToken()
-
             if (token.isNullOrEmpty()) return false
-            var url="";
-            if (!changeFollowStatus) {
-                url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/account/follow"
-            }else{
-                url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/account/unfollow"
-            }
 
+            val url = if (!changeFollowStatus)
+                "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/account/follow"
+            else
+                "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/account/unfollow"
 
-            val requestBody = mapOf(
-                "userId" to userId,
-            )
-            if (token==null|| token=="") {
-                return false
-            }
             val result = withContext(Dispatchers.IO) {
-                API.callApi(url, token, "POST", requestBody)
+                API.callApi(url, token, "POST", mapOf("userId" to userId))
             }
-            println(result)
-            val gson= Gson()
-            val response= gson.fromJson(result, GeneralResponse::class.java)
-            if (response.error==false) {
-                return true
-            }
-
+            val response = Gson().fromJson(result, GeneralResponse::class.java)
+            return response.error == false
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
         return false
     }
 }
-
-

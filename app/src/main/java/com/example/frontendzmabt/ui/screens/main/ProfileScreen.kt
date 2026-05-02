@@ -27,9 +27,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -56,14 +59,9 @@ import com.example.frontendzmabt.data.repository.UserRepository
 import com.example.frontendzmabt.ui.components.PostList
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 import com.example.frontendzmabt.ui.screens.Screen
+import com.example.frontendzmabt.ui.theme.LocalDarkMode
+import com.example.frontendzmabt.ui.theme.LocalSetDarkMode
 import kotlinx.coroutines.launch
-
-private val ProfileBg     = Color(0xFFF0F9FA)
-private val ProfileTeal   = Color(0xFF00535A)
-private val ProfileAvatar = Color(0xFF26C6DA)
-private val ProfileRed    = Color(0xFFE53935)
-private val ProfileText   = Color(0xFF0D2C2E)
-private val ProfileGray   = Color(0xFF78909C)
 
 @Composable
 fun ProfileScreen(navController: NavController, id: Int, isUser: Boolean) {
@@ -73,10 +71,15 @@ fun ProfileScreen(navController: NavController, id: Int, isUser: Boolean) {
     var ownUserId by remember { mutableStateOf(0) }
     var userInitials by remember { mutableStateOf("") }
 
+    var isGuest by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
+        val session = SessionManager(context)
+        isGuest = !session.isLoggedIn()
+        if (isGuest && isUser) return@LaunchedEffect
+
         val repo = UserRepository(context)
         if (isUser) {
-            val session = SessionManager(context)
             val localUser = session.getUser()
             ownUserId = localUser.id?.toInt() ?: 0
             userResponse = repo.getOwnProfile()
@@ -87,6 +90,11 @@ fun ProfileScreen(navController: NavController, id: Int, isUser: Boolean) {
         }
     }
 
+    if (isGuest && isUser) {
+        GuestProfileScreen(navController)
+        return
+    }
+
     AppScreenTemplate(
         navController = navController,
         header = { HomeHeader(userInitials = userInitials) },
@@ -94,7 +102,7 @@ fun ProfileScreen(navController: NavController, id: Int, isUser: Boolean) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(ProfileBg)
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 PostList(
                     navController = navController,
@@ -131,7 +139,7 @@ fun ProfileScreen(navController: NavController, id: Int, isUser: Boolean) {
                                     if (success) {
                                         userResponse = repo.getOwnProfile()
                                     } else {
-                                        Toast.makeText(context, "Bio sa nepodarilo uložiť", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "Failed to save bio", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             }
@@ -153,25 +161,28 @@ private fun ProfileHeaderContent(
     onLogOut: () -> Unit,
     onBioUpdate: (String) -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
+    val isDark = LocalDarkMode.current
+    val setDark = LocalSetDarkMode.current
     var showBioDialog by remember { mutableStateOf(false) }
     var bioInput by remember(user?.bio) { mutableStateOf(user?.bio ?: "") }
 
     if (showBioDialog) {
         AlertDialog(
             onDismissRequest = { showBioDialog = false },
-            title = { Text("Upraviť bio", fontWeight = FontWeight.Bold) },
+            title = { Text("Edit bio", fontWeight = FontWeight.Bold) },
             text = {
                 OutlinedTextField(
                     value = bioInput,
                     onValueChange = { bioInput = it },
-                    placeholder = { Text("Napíš niečo o sebe...") },
+                    placeholder = { Text("Write something about yourself...") },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3,
                     maxLines = 5,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = ProfileTeal,
-                        unfocusedBorderColor = Color(0xFFB0DDE6)
+                        focusedBorderColor = colors.primary,
+                        unfocusedBorderColor = colors.outline
                     )
                 )
             },
@@ -181,11 +192,11 @@ private fun ProfileHeaderContent(
                         onBioUpdate(bioInput)
                         showBioDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = ProfileTeal)
-                ) { Text("Uložiť") }
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
+                ) { Text("Save") }
             },
             dismissButton = {
-                TextButton(onClick = { showBioDialog = false }) { Text("Zrušiť", color = ProfileGray) }
+                TextButton(onClick = { showBioDialog = false }) { Text("Cancel", color = colors.onSurfaceVariant) }
             }
         )
     }
@@ -193,7 +204,7 @@ private fun ProfileHeaderContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(ProfileBg)
+            .background(colors.background)
             .padding(horizontal = 16.dp)
             .padding(top = 16.dp, bottom = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -203,7 +214,7 @@ private fun ProfileHeaderContent(
                 onClick = { navController.navigate(Screen.PostCreateScreen.route) },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = ProfileTeal)
+                colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
@@ -212,11 +223,10 @@ private fun ProfileHeaderContent(
             Spacer(Modifier.height(24.dp))
         }
 
-        // Avatar — len iniciály, bez fajky
         Box(
             modifier = Modifier
                 .size(96.dp)
-                .background(ProfileAvatar, CircleShape),
+                .background(colors.secondary, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -229,43 +239,40 @@ private fun ProfileHeaderContent(
 
         Spacer(Modifier.height(14.dp))
 
-        // Meno (username)
         Text(
             user?.username ?: "...",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            color = ProfileText
+            color = colors.onBackground
         )
 
         Spacer(Modifier.height(4.dp))
 
-        // Email
         Text(
             user?.email ?: "",
             fontSize = 13.sp,
-            color = ProfileGray
+            color = colors.onSurfaceVariant
         )
 
         Spacer(Modifier.height(12.dp))
 
-        // Bio sekcia
         if (isUser) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 8.dp)
             ) {
                 Text(
-                    if (user?.bio.isNullOrBlank()) "Pridaj bio..." else user?.bio ?: "",
+                    if (user?.bio.isNullOrBlank()) "Add a bio..." else user?.bio ?: "",
                     fontSize = 14.sp,
-                    color = if (user?.bio.isNullOrBlank()) ProfileGray.copy(alpha = 0.6f) else ProfileGray,
+                    color = if (user?.bio.isNullOrBlank()) colors.onSurfaceVariant.copy(alpha = 0.6f) else colors.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(Modifier.width(8.dp))
                 Icon(
                     Icons.Default.Edit,
-                    contentDescription = "Upraviť bio",
-                    tint = ProfileTeal,
+                    contentDescription = "Edit bio",
+                    tint = colors.primary,
                     modifier = Modifier
                         .size(18.dp)
                         .offset(y = 1.dp)
@@ -276,7 +283,7 @@ private fun ProfileHeaderContent(
             Text(
                 user?.bio ?: "",
                 fontSize = 14.sp,
-                color = ProfileGray,
+                color = colors.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
@@ -285,11 +292,34 @@ private fun ProfileHeaderContent(
         Spacer(Modifier.height(16.dp))
 
         if (isUser) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Dark mode", fontSize = 14.sp, color = colors.onBackground, fontWeight = FontWeight.Medium)
+                Switch(
+                    checked = isDark,
+                    onCheckedChange = { setDark(it) },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = colors.surface,
+                        checkedTrackColor = colors.primary,
+                        uncheckedThumbColor = colors.surface,
+                        uncheckedTrackColor = colors.onSurfaceVariant
+                    )
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+
+        if (isUser) {
             Button(
                 onClick = onLogOut,
                 modifier = Modifier.height(44.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = ProfileRed)
+                colors = ButtonDefaults.buttonColors(containerColor = colors.error)
             ) {
                 Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
@@ -300,7 +330,7 @@ private fun ProfileHeaderContent(
                 onClick = onFollowToggle,
                 modifier = Modifier.height(44.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = ProfileTeal)
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.primary)
             ) {
                 Text(
                     if (isFollowing) "Unfollow" else "Follow",
@@ -317,14 +347,66 @@ private fun ProfileHeaderContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Timeline", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ProfileText)
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFCFD8DC))
+            Text("Timeline", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = colors.onBackground)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = colors.outlineVariant)
         }
 
         Spacer(Modifier.height(4.dp))
     }
 }
 
+
+@Composable
+private fun GuestProfileScreen(navController: NavController) {
+    val colors = MaterialTheme.colorScheme
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.background),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(32.dp)
+        ) {
+            Text("👤", fontSize = 56.sp)
+            Spacer(Modifier.height(16.dp))
+            Text(
+                "You're browsing as a guest",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = colors.onBackground,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Sign in to access your profile, post trails, and interact with the community.",
+                fontSize = 14.sp,
+                color = colors.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp
+            )
+            Spacer(Modifier.height(28.dp))
+            Button(
+                onClick = { navController.navigate(Screen.LoginScreen.route) },
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
+            ) {
+                Text("Sign In", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = { navController.navigate(Screen.RegisterScreen.route) },
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.primary)
+            ) {
+                Text("Create Account", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
 
 @Composable
 fun ProfileHeader(id: Int, isUser: Boolean, navController: NavController) {}

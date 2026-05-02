@@ -31,6 +31,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -58,14 +59,6 @@ import com.example.frontendzmabt.ui.screens.Screen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-private val RegBgColor     = Color(0xFF9FD8E0)
-private val RegCardColor   = Color(0xFFFFFFFF)
-private val RegPrimaryTeal = Color(0xFF00535A)
-private val RegFieldBg     = Color(0xFFE8F7F9)
-private val RegTextDark    = Color(0xFF0D2C2E)
-private val RegTextGray    = Color(0xFF78909C)
-private val RegBorderColor = Color(0xFFB0DDE6)
-
 @Composable
 fun RegisterScreen(navController: NavController) {
     var username by remember { mutableStateOf("") }
@@ -75,11 +68,12 @@ fun RegisterScreen(navController: NavController) {
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmVisible by remember { mutableStateOf(false) }
     var termsAccepted by remember { mutableStateOf(false) }
+    val colors = MaterialTheme.colorScheme
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(RegBgColor),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -94,18 +88,17 @@ fun RegisterScreen(navController: NavController) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                color = RegCardColor,
+                color = colors.surface,
                 shadowElevation = 10.dp
             ) {
                 Column(
                     modifier = Modifier.padding(28.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Logo
                     Box(
                         modifier = Modifier
                             .size(48.dp)
-                            .background(RegPrimaryTeal, CircleShape),
+                            .background(colors.primary, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -119,7 +112,7 @@ fun RegisterScreen(navController: NavController) {
                     Text(
                         "Trail & Share",
                         fontSize = 13.sp,
-                        color = RegPrimaryTeal,
+                        color = colors.primary,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(Modifier.height(12.dp))
@@ -128,14 +121,14 @@ fun RegisterScreen(navController: NavController) {
                         "Begin your journey",
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
-                        color = RegTextDark,
+                        color = colors.onBackground,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
                         "Create an account to start pinning your discoveries.",
                         fontSize = 14.sp,
-                        color = RegTextGray,
+                        color = colors.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(24.dp))
@@ -146,7 +139,7 @@ fun RegisterScreen(navController: NavController) {
                         onValueChange = { username = it },
                         placeholder = "alex_explorer",
                         leadingIcon = {
-                            Icon(Icons.Default.Person, contentDescription = null, tint = RegPrimaryTeal)
+                            Icon(Icons.Default.Person, contentDescription = null, tint = colors.primary)
                         }
                     )
                     Spacer(Modifier.height(14.dp))
@@ -156,7 +149,7 @@ fun RegisterScreen(navController: NavController) {
                         value = email,
                         onValueChange = { email = it },
                         leadingIcon = {
-                            Icon(Icons.Default.Share, contentDescription = null, tint = RegPrimaryTeal)
+                            Icon(Icons.Default.Share, contentDescription = null, tint = colors.primary)
                         }
                     )
                     Spacer(Modifier.height(14.dp))
@@ -167,7 +160,7 @@ fun RegisterScreen(navController: NavController) {
                         onValueChange = { password = it },
                         placeholder = "••••••••",
                         leadingIcon = {
-                            Icon(Icons.Default.Lock, contentDescription = null, tint = RegPrimaryTeal)
+                            Icon(Icons.Default.Lock, contentDescription = null, tint = colors.primary)
                         },
                         isPassword = true,
                         passwordVisible = passwordVisible,
@@ -180,7 +173,7 @@ fun RegisterScreen(navController: NavController) {
                         value = passwordConfirmation,
                         onValueChange = { passwordConfirmation = it },
                         leadingIcon = {
-                            Icon(Icons.Default.Lock, contentDescription = null, tint = RegPrimaryTeal)
+                            Icon(Icons.Default.Lock, contentDescription = null, tint = colors.primary)
                         },
                         isPassword = true,
                         passwordVisible = confirmVisible,
@@ -195,12 +188,12 @@ fun RegisterScreen(navController: NavController) {
                         Checkbox(
                             checked = termsAccepted,
                             onCheckedChange = { termsAccepted = it },
-                            colors = CheckboxDefaults.colors(checkedColor = RegPrimaryTeal)
+                            colors = CheckboxDefaults.colors(checkedColor = colors.primary)
                         )
                         Text(
                             "I agree to the Terms of Service and acknowledge the Privacy Policy.",
                             fontSize = 12.sp,
-                            color = RegTextGray,
+                            color = colors.onSurfaceVariant,
                             modifier = Modifier.padding(start = 4.dp)
                         )
                     }
@@ -214,11 +207,11 @@ fun RegisterScreen(navController: NavController) {
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Already a member? ", fontSize = 14.sp, color = RegTextGray)
+                        Text("Already a member? ", fontSize = 14.sp, color = colors.onSurfaceVariant)
                         Text(
                             "Sign In",
                             fontSize = 14.sp,
-                            color = RegPrimaryTeal,
+                            color = colors.primary,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.clickable {
                                 navController.navigate(Screen.LoginScreen.route)
@@ -244,10 +237,11 @@ private fun AuthField(
     passwordVisible: Boolean = false,
     onTogglePassword: () -> Unit = {}
 ) {
+    val colors = MaterialTheme.colorScheme
     Text(
         label,
         fontSize = 11.sp,
-        color = RegTextDark,
+        color = colors.onBackground,
         fontWeight = FontWeight.SemiBold,
         letterSpacing = 0.8.sp,
         modifier = Modifier.fillMaxWidth()
@@ -263,7 +257,7 @@ private fun AuthField(
                     Icon(
                         if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                         contentDescription = null,
-                        tint = RegTextGray
+                        tint = colors.onSurfaceVariant
                     )
                 }
             }
@@ -273,10 +267,10 @@ private fun AuthField(
         singleLine = true,
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            unfocusedContainerColor = RegFieldBg,
-            focusedContainerColor = RegFieldBg,
-            unfocusedBorderColor = RegBorderColor,
-            focusedBorderColor = RegPrimaryTeal
+            unfocusedContainerColor = colors.surfaceVariant,
+            focusedContainerColor = colors.surfaceVariant,
+            unfocusedBorderColor = colors.outline,
+            focusedBorderColor = colors.primary
         )
     )
 }
@@ -291,6 +285,7 @@ fun RegisterButton(
 ) {
     val context: Context = LocalContext.current
     val scope: CoroutineScope = rememberCoroutineScope()
+    val primary = MaterialTheme.colorScheme.primary
     Button(
         onClick = {
             scope.launch {
@@ -305,7 +300,7 @@ fun RegisterButton(
         },
         modifier = Modifier.fillMaxWidth().height(52.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = RegPrimaryTeal)
+        colors = ButtonDefaults.buttonColors(containerColor = primary)
     ) {
         Text("Create Account →", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
     }

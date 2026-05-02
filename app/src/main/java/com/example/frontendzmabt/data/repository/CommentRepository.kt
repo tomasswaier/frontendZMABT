@@ -75,26 +75,12 @@ class CommentRepository(private val context: Context) {
             pagingSourceFactory = { CommentPagingSource(context,id) }
         ).flow
     }
-    suspend fun create(commentText: String, postId: Int, commentId: Int? = null): Boolean {
+    suspend fun create(commentText: String, postId: Int): Boolean {
         return try {
-            SocketManager.sendComment(postId = postId, commentText = commentText, commentId = commentId)
+            SocketManager.sendComment(postId = postId, commentText = commentText)
         } catch (e: Exception) {
             e.printStackTrace()
             false
-        }
-    }
-
-    suspend fun getReplies(postId: Int, commentId: Int): List<Comment> {
-        return try {
-            val token = SessionManager(context).getToken() ?: return emptyList()
-            val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/comments/getPage?page=1&postId=$postId&commentId=$commentId"
-            val result = withContext(Dispatchers.IO) { API.callApi(url, token, "GET", null) }
-            val type = object : com.google.gson.reflect.TypeToken<PaginatedResponse<Comment>>() {}.type
-            val response: PaginatedResponse<Comment> = Gson().fromJson(result, type)
-            response.data
-        } catch (e: Exception) {
-            e.printStackTrace()
-            emptyList()
         }
     }
     suspend fun ChangeLikeStatus(context:Context,action:Boolean,commentId:Int):Boolean{

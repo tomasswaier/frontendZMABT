@@ -24,6 +24,7 @@ android {
         buildConfigField("String","BACKEND_API_URL","\"${project.findProperty("BACKEND_API_URL")}\"")
         buildConfigField("String","MAPS_API_KEY","\"${project.findProperty("MAPS_API_KEY")}\"")
         buildConfigField("String","API_VERSION","\"${project.findProperty("API_VERSION")}\"")
+        buildConfigField("String","GOOGLE_WEB_CLIENT_ID","\"${project.findProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\"")
     }
 
     buildTypes {
@@ -80,4 +81,7 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.okhttp)
     implementation(libs.socket.io.client)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services)
+    implementation(libs.googleid)
 }

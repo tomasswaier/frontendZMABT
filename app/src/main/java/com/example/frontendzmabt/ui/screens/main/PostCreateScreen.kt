@@ -32,6 +32,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -49,7 +50,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
@@ -65,14 +65,6 @@ import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 import com.example.frontendzmabt.ui.screens.Screen
 import kotlinx.coroutines.launch
 
-private val PostBg      = Color(0xFFB2EBF2)
-private val PostCard    = Color(0xFFFFFFFF)
-private val PostTeal    = Color(0xFF00535A)
-private val PostFieldBg = Color(0xFFE8F7F9)
-private val PostLabel   = Color(0xFF546E7A)
-private val PostText    = Color(0xFF0D2C2E)
-private val PostGray    = Color(0xFF78909C)
-
 @Composable
 fun PostCreateScreen(navController: NavController) {
     var postText by remember { mutableStateOf("") }
@@ -80,11 +72,13 @@ fun PostCreateScreen(navController: NavController) {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
-    val latitude  = savedStateHandle?.getStateFlow("latitude",  0.0)?.collectAsState()?.value ?: 0.0
-    val longitude = savedStateHandle?.getStateFlow("longitude", 0.0)?.collectAsState()?.value ?: 0.0
+    val latitude   = savedStateHandle?.getStateFlow("latitude",   0.0)?.collectAsState()?.value ?: 0.0
+    val longitude  = savedStateHandle?.getStateFlow("longitude",  0.0)?.collectAsState()?.value ?: 0.0
+    val placeName  = savedStateHandle?.getStateFlow<String?>("placeName", null)?.collectAsState()?.value
 
     val context = LocalContext.current
     val scope   = rememberCoroutineScope()
+    val colors  = MaterialTheme.colorScheme
 
     val onSubmit: () -> Unit = {
         scope.launch {
@@ -102,7 +96,7 @@ fun PostCreateScreen(navController: NavController) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(PostBg)
+                    .background(colors.background)
                     .verticalScroll(rememberScrollState())
             ) {
                 Surface(
@@ -110,52 +104,48 @@ fun PostCreateScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(16.dp),
                     shape = RoundedCornerShape(24.dp),
-                    color = PostCard,
+                    color = colors.surface,
                     shadowElevation = 6.dp
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
 
-                        // THE STORY
                         PostSectionLabel("THE STORY")
                         Spacer(Modifier.height(8.dp))
                         OutlinedTextField(
                             value = postText,
                             onValueChange = { postText = it },
-                            placeholder = { Text("Tell the story behind this place...", color = PostGray, fontSize = 14.sp) },
+                            placeholder = { Text("Tell the story behind this place...", color = colors.onSurfaceVariant, fontSize = 14.sp) },
                             modifier = Modifier.fillMaxWidth().height(120.dp),
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedContainerColor = PostFieldBg,
-                                focusedContainerColor = PostFieldBg,
-                                unfocusedBorderColor = Color.Transparent,
-                                focusedBorderColor = PostTeal
+                                unfocusedContainerColor = colors.surfaceVariant,
+                                focusedContainerColor = colors.surfaceVariant,
+                                unfocusedBorderColor = colors.outline.copy(alpha = 0f),
+                                focusedBorderColor = colors.primary
                             )
                         )
 
                         Spacer(Modifier.height(20.dp))
 
-                        // ADD PHOTOS
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             PostSectionLabel("ADD PHOTOS")
-                            Text("UP TO 5 PHOTOS", fontSize = 10.sp, color = PostGray, letterSpacing = 0.5.sp)
+                            Text("UP TO 5 PHOTOS", fontSize = 10.sp, color = colors.onSurfaceVariant, letterSpacing = 0.5.sp)
                         }
                         Spacer(Modifier.height(8.dp))
                         PostImageUploader(imageUri = imageUri, onImageSelected = { imageUri = it })
 
                         Spacer(Modifier.height(20.dp))
 
-                        // LOCATION
                         PostSectionLabel("LOCATION")
                         Spacer(Modifier.height(8.dp))
-                        PostLocationSection(navController = navController, latitude = latitude, longitude = longitude)
+                        PostLocationSection(navController = navController, latitude = latitude, longitude = longitude, placeName = placeName)
 
                         Spacer(Modifier.height(20.dp))
 
-                        // RATING
                         PostSectionLabel("RATING")
                         Spacer(Modifier.height(8.dp))
                         RatingPicker(rating = rating, onRatingChanged = { rating = it })
@@ -166,7 +156,7 @@ fun PostCreateScreen(navController: NavController) {
                             onClick = onSubmit,
                             modifier = Modifier.fillMaxWidth().height(52.dp),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = PostTeal)
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
                         ) {
                             Text("Publish to Trail  ▷", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                         }
@@ -179,28 +169,29 @@ fun PostCreateScreen(navController: NavController) {
 
 @Composable
 private fun CreatePostHeader(onBack: () -> Unit, onPost: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(colors.surface)
             .windowInsetsPadding(WindowInsets.statusBars)
             .padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = onBack) {
-            Icon(Icons.Default.Close, contentDescription = "Back", tint = PostTeal)
+            Icon(Icons.Default.Close, contentDescription = "Back", tint = colors.primary)
         }
-        Text("Create New Post", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = PostText)
+        Text("Create New Post", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.onBackground)
         TextButton(onClick = onPost) {
-            Text("Post", color = PostTeal, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Post", color = colors.primary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
     }
 }
 
 @Composable
 private fun PostSectionLabel(text: String) {
-    Text(text, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = PostLabel, letterSpacing = 0.8.sp)
+    Text(text, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 0.8.sp)
 }
 
 @Composable
@@ -208,18 +199,17 @@ private fun PostImageUploader(imageUri: Uri?, onImageSelected: (Uri) -> Unit) {
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { onImageSelected(it) }
     }
-    val dashedTeal = PostTeal
+    val colors = MaterialTheme.colorScheme
 
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        // Hlavný slot — kamera alebo náhľad
         Box(
             modifier = Modifier
                 .size(80.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(PostFieldBg)
+                .background(colors.surfaceVariant)
                 .drawBehind {
                     drawRoundRect(
-                        color = dashedTeal,
+                        color = colors.primary,
                         style = Stroke(
                             width = 1.5.dp.toPx(),
                             pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 6f))
@@ -238,54 +228,58 @@ private fun PostImageUploader(imageUri: Uri?, onImageSelected: (Uri) -> Unit) {
                     contentScale = ContentScale.Crop
                 )
             } else {
-                Icon(Icons.Default.CameraAlt, contentDescription = null, tint = PostTeal, modifier = Modifier.size(28.dp))
+                Icon(Icons.Default.CameraAlt, contentDescription = null, tint = colors.primary, modifier = Modifier.size(28.dp))
             }
         }
 
-        // Prázdne sloty
         repeat(4) {
             Box(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(PostFieldBg)
+                    .background(colors.surfaceVariant)
             )
         }
     }
 }
 
 @Composable
-private fun PostLocationSection(navController: NavController, latitude: Double, longitude: Double) {
+private fun PostLocationSection(navController: NavController, latitude: Double, longitude: Double, placeName: String?) {
+    val colors = MaterialTheme.colorScheme
     val hasLocation = latitude != 0.0 || longitude != 0.0
+    val locationLabel = when {
+        placeName != null -> placeName
+        hasLocation -> "%.4f,  %.4f".format(latitude, longitude)
+        else -> null
+    }
 
-    if (hasLocation) {
+    if (locationLabel != null) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .background(PostFieldBg)
+                .background(colors.surfaceVariant)
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.LocationOn, contentDescription = null, tint = PostTeal, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.LocationOn, contentDescription = null, tint = colors.primary, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text("%.4f,  %.4f".format(latitude, longitude), fontSize = 13.sp, color = PostText, modifier = Modifier.weight(1f))
+            Text(locationLabel, fontSize = 13.sp, color = colors.onBackground, modifier = Modifier.weight(1f), fontWeight = if (placeName != null) FontWeight.SemiBold else FontWeight.Normal)
             TextButton(onClick = { navController.navigate(Screen.LocationPickerScreen.route) }) {
-                Text("Zmeniť", color = PostTeal, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                Text("Change", color = colors.primary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             }
         }
     } else {
         Button(
             onClick = { navController.navigate(Screen.LocationPickerScreen.route) },
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = PostTeal)
+            colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
         ) {
             Text("Pick a location", fontSize = 14.sp)
         }
     }
 }
 
-// Zachované pre spätnú kompatibilitu
 @Composable
 fun PostForm(navController: NavController) {}
 

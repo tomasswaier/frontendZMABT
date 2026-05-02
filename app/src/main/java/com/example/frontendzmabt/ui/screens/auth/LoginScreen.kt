@@ -1,7 +1,12 @@
 package com.example.frontendzmabt.ui.screens.auth
 
 import android.widget.Toast
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.compose.foundation.background
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +28,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -46,28 +52,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.frontendzmabt.BuildConfig
 import com.example.frontendzmabt.data.repository.AuthRepository
 import com.example.frontendzmabt.ui.screens.Screen
 import kotlinx.coroutines.launch
-
-private val BgColor     = Color(0xFFB2EBF2)
-private val CardColor   = Color(0xFFFFFFFF)
-private val PrimaryTeal = Color(0xFF00535A)
-private val FieldBg     = Color(0xFFE8F7F9)
-private val TextDark    = Color(0xFF0D2C2E)
-private val TextGray    = Color(0xFF78909C)
-private val BorderColor = Color(0xFFB0DDE6)
 
 @Composable
 fun LoginScreen(navController: NavController) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    val colors = MaterialTheme.colorScheme
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgColor),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -79,7 +79,7 @@ fun LoginScreen(navController: NavController) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                color = CardColor,
+                color = colors.surface,
                 shadowElevation = 8.dp
             ) {
                 Column(
@@ -92,13 +92,13 @@ fun LoginScreen(navController: NavController) {
                         "Welcome Back",
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = colors.onBackground
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
                         "Sign in to continue your journey through the map.",
                         fontSize = 14.sp,
-                        color = TextGray,
+                        color = colors.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(28.dp))
@@ -106,7 +106,7 @@ fun LoginScreen(navController: NavController) {
                     Text(
                         "Username",
                         fontSize = 13.sp,
-                        color = TextDark,
+                        color = colors.onBackground,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -115,16 +115,16 @@ fun LoginScreen(navController: NavController) {
                         value = username,
                         onValueChange = { username = it },
                         leadingIcon = {
-                            Icon(Icons.Default.Person, contentDescription = null, tint = PrimaryTeal)
+                            Icon(Icons.Default.Person, contentDescription = null, tint = colors.primary)
                         },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = FieldBg,
-                            focusedContainerColor = FieldBg,
-                            unfocusedBorderColor = BorderColor,
-                            focusedBorderColor = PrimaryTeal
+                            unfocusedContainerColor = colors.surfaceVariant,
+                            focusedContainerColor = colors.surfaceVariant,
+                            unfocusedBorderColor = colors.outline,
+                            focusedBorderColor = colors.primary
                         )
                     )
                     Spacer(Modifier.height(16.dp))
@@ -134,22 +134,22 @@ fun LoginScreen(navController: NavController) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Password", fontSize = 13.sp, color = TextDark, fontWeight = FontWeight.Medium)
-                        Text("Forgot?", fontSize = 13.sp, color = PrimaryTeal, fontWeight = FontWeight.Medium)
+                        Text("Password", fontSize = 13.sp, color = colors.onBackground, fontWeight = FontWeight.Medium)
+                        Text("Forgot?", fontSize = 13.sp, color = colors.primary, fontWeight = FontWeight.Medium)
                     }
                     Spacer(Modifier.height(6.dp))
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
                         leadingIcon = {
-                            Icon(Icons.Default.Lock, contentDescription = null, tint = PrimaryTeal)
+                            Icon(Icons.Default.Lock, contentDescription = null, tint = colors.primary)
                         },
                         trailingIcon = {
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
                                     if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                     contentDescription = null,
-                                    tint = TextGray
+                                    tint = colors.onSurfaceVariant
                                 )
                             }
                         },
@@ -158,10 +158,10 @@ fun LoginScreen(navController: NavController) {
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = FieldBg,
-                            focusedContainerColor = FieldBg,
-                            unfocusedBorderColor = BorderColor,
-                            focusedBorderColor = PrimaryTeal
+                            unfocusedContainerColor = colors.surfaceVariant,
+                            focusedContainerColor = colors.surfaceVariant,
+                            unfocusedBorderColor = colors.outline,
+                            focusedBorderColor = colors.primary
                         )
                     )
                     Spacer(Modifier.height(24.dp))
@@ -174,26 +174,19 @@ fun LoginScreen(navController: NavController) {
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        HorizontalDivider(modifier = Modifier.weight(1f), color = BorderColor)
+                        HorizontalDivider(modifier = Modifier.weight(1f), color = colors.outline)
                         Text(
                             "  OR CONTINUE WITH  ",
                             fontSize = 11.sp,
-                            color = TextGray,
+                            color = colors.onSurfaceVariant,
                             fontWeight = FontWeight.Medium
                         )
-                        HorizontalDivider(modifier = Modifier.weight(1f), color = BorderColor)
+                        HorizontalDivider(modifier = Modifier.weight(1f), color = colors.outline)
                     }
 
                     Spacer(Modifier.height(16.dp))
 
-                    OutlinedButton(
-                        onClick = {},
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = TextDark)
-                    ) {
-                        Text("Google", fontSize = 15.sp, fontWeight = FontWeight.Medium)
-                    }
+                    GoogleSignInButton(navController)
 
                     Spacer(Modifier.height(10.dp))
 
@@ -205,7 +198,7 @@ fun LoginScreen(navController: NavController) {
                         },
                         modifier = Modifier.fillMaxWidth().height(48.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = TextDark)
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.onBackground)
                     ) {
                         Text("Guest", fontSize = 15.sp, fontWeight = FontWeight.Medium)
                     }
@@ -213,11 +206,11 @@ fun LoginScreen(navController: NavController) {
                     Spacer(Modifier.height(24.dp))
 
                     Row(horizontalArrangement = Arrangement.Center) {
-                        Text("New to the maps? ", fontSize = 14.sp, color = TextGray)
+                        Text("New to the maps? ", fontSize = 14.sp, color = colors.onSurfaceVariant)
                         Text(
                             "Register new account",
                             fontSize = 14.sp,
-                            color = PrimaryTeal,
+                            color = colors.primary,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.clickable {
                                 navController.navigate(Screen.RegisterScreen.route)
@@ -231,7 +224,7 @@ fun LoginScreen(navController: NavController) {
             Text(
                 "© 2024 SHARE & TRAIL DIGITAL STUDIO",
                 fontSize = 10.sp,
-                color = TextGray.copy(alpha = 0.7f),
+                color = colors.onSurfaceVariant.copy(alpha = 0.7f),
                 letterSpacing = 0.5.sp
             )
         }
@@ -242,6 +235,7 @@ fun LoginScreen(navController: NavController) {
 fun LoginButton(username: String, password: String, navController: NavController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val primary = MaterialTheme.colorScheme.primary
     Button(
         onClick = {
             scope.launch {
@@ -256,9 +250,63 @@ fun LoginButton(username: String, password: String, navController: NavController
         },
         modifier = Modifier.fillMaxWidth().height(52.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal)
+        colors = ButtonDefaults.buttonColors(containerColor = primary)
     ) {
         Text("Log in", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@Composable
+fun GoogleSignInButton(navController: NavController) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val colors = MaterialTheme.colorScheme
+    var isLoading by remember { mutableStateOf(false) }
+
+    OutlinedButton(
+        onClick = {
+            isLoading = true
+            scope.launch {
+                try {
+                    val credentialManager = CredentialManager.create(context)
+                    val googleIdOption = GetGoogleIdOption.Builder()
+                        .setFilterByAuthorizedAccounts(false)
+                        .setServerClientId(BuildConfig.GOOGLE_WEB_CLIENT_ID)
+                        .setAutoSelectEnabled(false)
+                        .build()
+                    val request = GetCredentialRequest.Builder()
+                        .addCredentialOption(googleIdOption)
+                        .build()
+                    val result = credentialManager.getCredential(context = context, request = request)
+                    val credential = result.credential
+                    if (credential is GoogleIdTokenCredential) {
+                        val idToken = credential.idToken
+                        val success = AuthRepository(context).signInWithGoogle(idToken)
+                        if (success) {
+                            navController.navigate(Screen.HomeScreen.route)
+                        } else {
+                            Toast.makeText(context, "Google sign-in failed", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                } catch (e: GetCredentialException) {
+                    Toast.makeText(context, "Google sign-in cancelled", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Sign-in error: ${e.message}", Toast.LENGTH_LONG).show()
+                } finally {
+                    isLoading = false
+                }
+            }
+        },
+        enabled = !isLoading,
+        modifier = Modifier.fillMaxWidth().height(48.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.onBackground)
+    ) {
+        Text(
+            if (isLoading) "Signing in..." else "Google",
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 

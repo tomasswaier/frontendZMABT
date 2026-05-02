@@ -23,20 +23,18 @@ class PostPagingSource(
             val session = SessionManager(context)
             val token = session.getToken()
 
-            if (token.isNullOrEmpty()) {
-                return LoadResult.Page(emptyList(), null, null)
-            }
-            var apiUrl="";
-            if (this.isUser) {
+            val tokenStr = token ?: ""
+            var apiUrl = ""
+            if (this.isUser && tokenStr.isNotEmpty()) {
                 apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION + "/posts/getPageUser?page=$page"
-            }else if( this.id > 0){
-                apiUrl = BuildConfig.BACKEND_API_URL +BuildConfig.API_VERSION+ "/posts/getPage?page=$page&userId=$id"
-            }else{
+            } else if (this.id > 0) {
+                apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION + "/posts/getPage?page=$page&userId=$id"
+            } else {
                 apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION + "/posts/getPageFyp?page=$page"
             }
 
             val result = withContext(Dispatchers.IO) {
-                API.callApi(apiUrl, token, "GET", null)
+                API.callApi(apiUrl, tokenStr, "GET", null)
             }
             println("paging source:")
             println(result)
@@ -73,16 +71,13 @@ class CommentPagingSource(
             val session = SessionManager(context)
             val token = session.getToken()
 
-            if (token.isNullOrEmpty()) {
-                return LoadResult.Page(emptyList(), null, null)
-            }
-            var apiUrl="";
-            if ( this.id > 0){
-                apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION + "/comments/getPage?page=$page&postId=$id"
-            }
+            val tokenStr = token ?: ""
+            val apiUrl = if (this.id > 0)
+                BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION + "/comments/getPage?page=$page&postId=$id"
+            else ""
 
             val result = withContext(Dispatchers.IO) {
-                API.callApi(apiUrl, token, "GET", null)
+                API.callApi(apiUrl, tokenStr, "GET", null)
             }
             println(result)
 
@@ -115,13 +110,11 @@ class PlacePagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Post> {
         return try {
             val page = params.key ?: 1
-            val token = SessionManager(context).getToken()
-            if (token.isNullOrEmpty()) return LoadResult.Page(emptyList(), null, null)
-
+            val tokenStr = SessionManager(context).getToken() ?: ""
             val apiUrl = BuildConfig.BACKEND_API_URL + BuildConfig.API_VERSION +
                     "/posts/getPagePlace?page=$page&placeId=$placeId"
 
-            val result = withContext(Dispatchers.IO) { API.callApi(apiUrl, token, "GET", null) }
+            val result = withContext(Dispatchers.IO) { API.callApi(apiUrl, tokenStr, "GET", null) }
 
             val type = object : TypeToken<PaginatedResponse<Post>>() {}.type
             val response: PaginatedResponse<Post> = Gson().fromJson(result, type)

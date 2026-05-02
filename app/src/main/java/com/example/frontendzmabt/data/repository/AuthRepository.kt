@@ -18,6 +18,27 @@ data class LoginData(
 )
 
 class AuthRepository(private val context: Context) {
+    suspend fun signInWithGoogle(idToken: String): Boolean {
+        return try {
+            val apiUrl = BuildConfig.BACKEND_API_URL + BuildConfig.API_VERSION + "/auth/google"
+            val requestBody = mapOf("idToken" to idToken)
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(apiUrl, "", "POST", requestBody)
+            }
+            val response = Gson().fromJson(result, LoginResponse::class.java)
+            SessionManager(context).saveToken(
+                response.data.token,
+                response.data.user.username,
+                response.data.user.email,
+                response.data.user.id
+            )
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun logout():Boolean{
         try {
             val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/auth/logout"//+"/api/v1/login"

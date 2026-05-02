@@ -26,7 +26,7 @@ class PlaceRepository(private val context: Context) {
 
     suspend fun getAll(): List<Place> {
         return try {
-            val token = SessionManager(context).getToken() ?: return emptyList()
+            val token = SessionManager(context).getToken() ?: ""
             val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/places"
             val result = withContext(Dispatchers.IO) { API.callApi(url, token, "GET", null) }
             val type = object : TypeToken<List<Place>>() {}.type
