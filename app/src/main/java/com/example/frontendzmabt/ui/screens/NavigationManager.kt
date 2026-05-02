@@ -19,12 +19,12 @@ import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.frontendzmabt.data.SessionManager
-import com.example.frontendzmabt.data.User
+import com.example.frontendzmabt.data.model.User
 import com.example.frontendzmabt.ui.screens.auth.LoginScreen
 import com.example.frontendzmabt.ui.screens.auth.RegisterScreen
 import com.example.frontendzmabt.ui.screens.main.HomeScreen
-import com.example.frontendzmabt.ui.screens.main.LocationPickerScreen
 import com.example.frontendzmabt.ui.screens.main.MapScreen
+import com.example.frontendzmabt.ui.screens.main.PlaceScreen
 import com.example.frontendzmabt.ui.screens.main.ProfileScreen
 import com.example.frontendzmabt.ui.screens.main.PostCreateScreen
 import com.example.frontendzmabt.ui.screens.main.PostScreen
@@ -35,6 +35,12 @@ data class ProfileNavArgs(
 )
 fun ProfileNavArgs.toRoute(): String {
     return "profile_screen?userId=$userId"
+}
+data class PlaceNavArgs(
+    val placeId: Int,
+)
+fun PlaceNavArgs.toRoute(): String {
+    return "place_screen?placeId=$placeId"
 }
 data class PostNavArgs(
     val postId: Int,
@@ -50,11 +56,11 @@ sealed class Screen(val route: String) {
     object RegisterScreen: Screen("register_screen")
     object HomeScreen: Screen("home_screen")
     object ProfileScreen: Screen("profile_screen?userId={userId}")
+    object PlaceScreen: Screen("place_screen?placeId={placeId}")
     object UserProfileScreen: Screen("user_profile_screen")
     object MapScreen: Screen("map_screen")
     object PostCreateScreen: Screen("post_create_screen")
     object PostScreen: Screen("post_screen?postId={postId}&isUser={isUser}")
-    object LocationPickerScreen: Screen("location_picker_screen")
 
 }
 enum class AppNavigation(var label: String, val route: String, val icon: ImageVector) {
@@ -104,6 +110,17 @@ fun NavigationManager() {
                 HomeScreen(navController)
             }
             composable(
+                route = Screen.PlaceScreen.route,
+                arguments = listOf(
+                    navArgument("placeId") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+
+                val placeId = backStackEntry.arguments?.getInt("placeId") ?: 0
+
+                PlaceScreen(navController, placeId)
+            }
+            composable(
                 route = Screen.ProfileScreen.route,
                 arguments = listOf(
                     navArgument("userId") { type = NavType.IntType }
@@ -125,9 +142,6 @@ fun NavigationManager() {
             }
             composable(route = Screen.PostCreateScreen.route) {
                 PostCreateScreen(navController)
-            }
-            composable(route = Screen.LocationPickerScreen.route) {
-                LocationPickerScreen(navController)
             }
             composable(
                 route = Screen.PostScreen.route,

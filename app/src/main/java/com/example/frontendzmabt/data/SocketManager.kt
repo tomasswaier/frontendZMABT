@@ -35,6 +35,9 @@ object SocketManager {
     fun getSocket(): Socket {
         return socket
     }
+    fun isInitialized(): Boolean{
+        return ::socket.isInitialized && socket.connected()
+    }
     fun sendComment(postId: Int, commentText: String): Boolean {
 
         val data = mapOf(

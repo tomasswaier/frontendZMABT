@@ -1,6 +1,7 @@
 package com.example.frontendzmabt.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,7 @@ fun AppScreenTemplate(
     header: @Composable () -> Unit,
     content: @Composable () -> Unit
 ) {
+
     Scaffold(
         topBar = { header() },
         bottomBar = { NavigationBar(navController) }

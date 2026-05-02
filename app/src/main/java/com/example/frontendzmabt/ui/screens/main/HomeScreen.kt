@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,33 +34,22 @@ import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.ui.components.PostList
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 
-private val HomeTeal = Color(0xFF00535A)
-private val HomeBg   = Color(0xFFF0F9FA)
 
 @Composable
 fun HomeScreen(navController: NavController) {
-    val context = LocalContext.current
-    var userInitials by remember { mutableStateOf("") }
-
-    LaunchedEffect(Unit) {
-        val session = SessionManager(context)
-        val user = session.getUser()
-        userInitials = user?.username?.take(2)?.uppercase() ?: "??"
-    }
-
     AppScreenTemplate(
         navController = navController,
-        header = { HomeHeader(userInitials = userInitials) },
+        header = { HomeHeader() },
         content = {
-            Box(modifier = Modifier.fillMaxSize().background(HomeBg)) {
-                PostList(navController, 0, false)
+            Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                PostList(navController, 0, 0,false)
             }
         }
     )
 }
 
 @Composable
-fun HomeHeader(userInitials: String) {
+fun HomeHeader() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -73,16 +63,7 @@ fun HomeHeader(userInitials: String) {
             "Share & Trail",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = HomeTeal
+            color =MaterialTheme.colorScheme.tertiary
         )
-
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(HomeTeal, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(userInitials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-        }
     }
 }

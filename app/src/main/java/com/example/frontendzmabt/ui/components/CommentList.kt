@@ -21,9 +21,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.SocketManager
 import com.example.frontendzmabt.data.repository.Comment
 import com.example.frontendzmabt.data.repository.CommentRepository
+import com.example.frontendzmabt.data.repository.UserRepository
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -39,26 +41,35 @@ fun CommentList(navController: NavController,id: Int) {
     val scope = rememberCoroutineScope()
     val pagerFlow = remember { repo.getCommentPager(id) }
     val lazyPagingItems = pagerFlow.collectAsLazyPagingItems()
+    var isLoggedIn by remember { mutableStateOf(false) }
 
     val liveComments = remember { mutableStateListOf<Comment>() }
     LaunchedEffect(id) {
-        SocketManager.joinPost(id)
-    }
-
-    LaunchedEffect(id) {
-
-        val socket= SocketManager.getSocket()
-        socket.on("newComment") { args ->
-            val json = args[0] as JSONObject
-
-            val gson = Gson()
-            val comment = gson.fromJson(json.getJSONObject("comment").toString(), Comment::class.java)
-            println(comment)
-
-            // 🔥 update UI state
-            liveComments.add(0, comment)
+        if (SocketManager.isInitialized()) {
+            SocketManager.joinPost(id)
         }
     }
+    LaunchedEffect(Unit) {
+        if(SessionManager(context).getToken()!=null) {
+            isLoggedIn=true
+            if (SocketManager.isInitialized()) {
+                val socket = SocketManager.getSocket()
+                socket.on("newComment") { args ->
+                    val json = args[0] as JSONObject
+
+                    val gson = Gson()
+                    val comment =
+                        gson.fromJson(json.getJSONObject("comment").toString(), Comment::class.java)
+                    println(comment)
+
+                    // 🔥 update UI state
+                    liveComments.add(0, comment)
+                }
+            }
+        }
+        println(Unit)
+    }
+
 
     Column {
         LazyColumn {
@@ -83,16 +94,22 @@ fun CommentList(navController: NavController,id: Int) {
                 if (comment!=null ) {
                     Row() {
                         Text(comment.content)
-                        ChangeStatusBoolean(
-                            Icons.Default.ThumbUp, Icons.Default.ThumbUpOffAlt, isLiked,
-                            onClick = {
-                                scope.launch {
-                                    ChangeStatus(context, action = isLiked, commentId = comment.id)
-                                }
-                                isLiked = !isLiked;
+                        if (isLoggedIn) {
+                            ChangeStatusBoolean(
+                                Icons.Default.ThumbUp, Icons.Default.ThumbUpOffAlt, isLiked,
+                                onClick = {
+                                    scope.launch {
+                                        ChangeStatus(
+                                            context,
+                                            action = isLiked,
+                                            commentId = comment.id
+                                        )
+                                    }
+                                    isLiked = !isLiked;
 
-                            }
-                        )
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -104,10 +121,15 @@ fun CommentList(navController: NavController,id: Int) {
         }
 
         DisposableEffect(Unit) {
-            val socket = SocketManager.getSocket()
+            if (SocketManager.isInitialized()) {
+                val socket = SocketManager.getSocket()
 
-            onDispose {
-                socket.off("newComment")
+                onDispose {
+                    socket.off("newComment")
+                }
+            }else {
+                onDispose {}
+
             }
         }
     }

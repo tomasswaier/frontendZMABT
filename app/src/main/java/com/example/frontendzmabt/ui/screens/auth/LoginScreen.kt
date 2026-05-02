@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.frontendzmabt.data.repository.AuthRepository
+import com.example.frontendzmabt.ui.components.GoogleLoginButton
 import com.example.frontendzmabt.ui.screens.Screen
 import kotlinx.coroutines.launch
 
@@ -186,15 +187,7 @@ fun LoginScreen(navController: NavController) {
 
                     Spacer(Modifier.height(16.dp))
 
-                    OutlinedButton(
-                        onClick = {},
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = TextDark)
-                    ) {
-                        Text("Google", fontSize = 15.sp, fontWeight = FontWeight.Medium)
-                    }
-
+                    GoogleLoginButton(navController)
                     Spacer(Modifier.height(10.dp))
 
                     OutlinedButton(

@@ -6,16 +6,26 @@ import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
-
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 class API {
+    fun isOnline(context: Context): Boolean {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = cm.activeNetwork ?: return false
+        val capabilities = cm.getNetworkCapabilities(network) ?: return false
+
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
 
     companion object {
         // Function to handle all HTTP methods
-        suspend fun callApi(apiUrl: String, token: String, httpMethod: String, requestModel: Any? = null): String {
+        suspend fun callApi(apiUrl: String, token: String?, httpMethod: String, requestModel: Any? = null): String {
             val response = StringBuilder()
 
             try {
                 val url = URL(apiUrl)
+                println(url)
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = httpMethod // Set the HTTP method (GET, POST, PUT, DELETE)
                 connection.connectTimeout = 10000
@@ -24,7 +34,9 @@ class API {
                 // Set request headers for JSON format and authorization
                 connection.setRequestProperty("Content-Type", "application/json")
                 connection.setRequestProperty("Accept", "application/json")
-                connection.setRequestProperty("Authorization", "Bearer $token")
+                if (token!=null) {
+                    connection.setRequestProperty("Authorization", "Bearer $token")
+                }
 
                 // Send request body for POST/PUT methods
                 if (httpMethod == "POST" || httpMethod == "PUT" || httpMethod == "PATCH") {

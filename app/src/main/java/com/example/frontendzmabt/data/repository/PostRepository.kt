@@ -1,16 +1,22 @@
 package com.example.frontendzmabt.data.repository
 
 
+import android.R
 import com.example.frontendzmabt.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.paging.LoadState
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.example.frontendzmabt.data.API
+import com.example.frontendzmabt.data.AppDatabase
 import com.example.frontendzmabt.data.SessionManager
+import com.example.frontendzmabt.data.model.CachedPosts
+import com.example.frontendzmabt.data.model.Post
+import com.example.frontendzmabt.data.model.PostNoUser
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -38,25 +44,11 @@ data class Meta(
 )
 
 data class GetPostResponse(
-    val post:Post,
+    val post: Post,
     val postImages: List<PostImage>
 )
 
-data class PostUser(
-    val id: Int,
-    val username: String
-)
 
-data class Post(
-    val id: Int,
-    val userId: Int,
-    val placeId: Int,
-    val description: String,
-    val createdAt: String,
-    val updatedAt: String?,
-    val stars: Int,
-    val user: PostUser? = null
-)
 data class PostImage(
     val id:Int,
     val postId:Int,
@@ -65,16 +57,18 @@ data class PostImage(
     )
 class PostRepository(private val context: Context) {
 
+    //could be done in a better way , who cares
+    private val db = AppDatabase.getInstance(context)
     suspend fun get(id:Int): GetPostResponse?{
         try {
             val session = SessionManager(context);
-            val token=session.getToken()
+            //val token=session.getToken()
             val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/posts/get?postId=$id"
-            if (token==null|| token=="") {
+            /*if (token==null|| token=="") {
                 return null
-            }
+            }*/
             val result = withContext(Dispatchers.IO) {
-                API.callApi(apiUrl, token, "GET", "")
+                API.callApi(apiUrl, null, "GET", "")
             }
             println(result)
             val gson= Gson()
@@ -121,15 +115,37 @@ class PostRepository(private val context: Context) {
 
         return false
     }
+    fun getCachedPosts(id: Int, placeId: Int, isUser: Boolean): Flow<List<PostNoUser>> {
+        return when {
+            isUser -> db.postDao().getByUser(id)
+            id > 0 -> db.postDao().getByUser(id)
+            placeId > 0 -> db.postDao().getByPlace(placeId)
+            else -> db.postDao().getAll()
+        }
+    }
+
 
     suspend fun create(
         postText: String,
         rating: Int,
         longitude: Double,
         latitude: Double,
-        imageUri: Uri?
+        imageUri: Uri?,
+        online: Boolean
     ): Boolean {
         try {
+            if (!online) {
+                val cachedPost = CachedPosts(
+                    id = -(System.currentTimeMillis().toInt()),
+                    placeId = 0,
+                    description = postText,
+                    createdAt = System.currentTimeMillis().toString(),
+                    updatedAt = null,
+                    stars = rating
+                )
+                db.cachedPostDao().insert(cachedPost)
+                return true
+            }
             val session = SessionManager(context)
             val token = session.getToken()
 
@@ -189,10 +205,10 @@ class PostRepository(private val context: Context) {
 
         return false
     }
-    fun getPostsPager(id:Int,isUser:Boolean): Flow<PagingData<Post>> {
+    fun getPostsPager(id:Int,placeId:Int,isUser:Boolean): Flow<PagingData<Post>> {
         return Pager(
             config = PagingConfig(pageSize = 10),
-            pagingSourceFactory = { PostPagingSource(context,id,isUser) }
+            pagingSourceFactory = { PostPagingSource(context,id,placeId,isUser) }
         ).flow
     }
     fun uriToRequestBody(context: Context, uri: Uri): RequestBody? {

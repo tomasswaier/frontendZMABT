@@ -22,6 +22,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -65,13 +66,20 @@ private val avatarColors = listOf(
 fun PostList(
     navController: NavController,
     id: Int,
+    //To be clear. I know how to do this. I choose not ot do it correctly because It's 3:02 AM and I'm watching banana channel
+    placeId: Int,
     isUser: Boolean,
     headerContent: (@Composable () -> Unit)? = null
 ) {
     val context = LocalContext.current
     val repo = remember { PostRepository(context) }
-    val pagerFlow = remember { repo.getPostsPager(id, isUser) }
+    val pagerFlow = remember { repo.getPostsPager(id,placeId, isUser) }
     val lazyPagingItems = pagerFlow.collectAsLazyPagingItems()
+    val cachedPosts by repo.getCachedPosts(id, placeId, isUser)
+        .collectAsState(initial = emptyList())
+
+    val isNetworkError = lazyPagingItems.loadState.refresh is LoadState.Error
+    val isOffline = isNetworkError && cachedPosts.isNotEmpty()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -83,40 +91,72 @@ fun PostList(
         }
 
         item {
-            when (lazyPagingItems.loadState.refresh) {
-                is LoadState.Loading -> Box(
-                    Modifier.fillMaxWidth().padding(32.dp),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator(color = Color(0xFF00535A)) }
-                is LoadState.Error -> Text(
-                    "Chyba pri načítaní",
-                    modifier = Modifier.padding(16.dp),
-                    color = CardSubtle
-                )
+            when {
+                lazyPagingItems.loadState.refresh is LoadState.Loading -> {
+                    Box(
+                        Modifier.fillMaxWidth().padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) { CircularProgressIndicator(color = Color(0xFF00535A)) }
+                }
+                isOffline -> {
+                    Text(
+                        "Offline – zobrazujú sa uložené dáta",
+                        modifier = Modifier.padding(16.dp),
+                        color = CardSubtle
+                    )
+                }
+                isNetworkError -> {
+                    Text(
+                        "Offline – pre lepšie fungovanie aplikácie sa pripoj na internet",
+                        modifier = Modifier.padding(16.dp),
+                        color = CardSubtle
+                    )
+                }
                 else -> {}
             }
         }
 
-        items(lazyPagingItems.itemCount) { index ->
-            val post = lazyPagingItems[index]
-            key(post?.id ?: index) {
-                if (post != null) {
-                    PostCard(
-                        postId = post.id,
-                        userId = post.userId,
-                        username = post.user?.username,
-                        description = post.description,
-                        navController = navController,
-                        isUser = isUser
-                    )
+
+        if (isOffline) {
+            items(cachedPosts.size) { index ->
+                val post = cachedPosts[index]
+                PostCard(
+                    postId = post.id,
+                    userId = post.userId,
+                    username = null,
+                    description = post.description,
+                    navController = navController,
+                    isUser = isUser
+                )
+            }
+        } else {
+            items(lazyPagingItems.itemCount) { index ->
+                val post = lazyPagingItems[index]
+                key(post?.id ?: index) {
+                    if (post != null) {
+                        PostCard(
+                            postId = post.id,
+                            userId = post.userId,
+                            username = post.user?.username,
+                            description = post.description,
+                            navController = navController,
+                            isUser = isUser
+                        )
+                    }
                 }
             }
-        }
 
-        item {
-            if (lazyPagingItems.loadState.append is LoadState.Loading) {
-                Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF00535A), modifier = Modifier.size(24.dp))
+            item {
+                if (lazyPagingItems.loadState.append is LoadState.Loading) {
+                    Box(
+                        Modifier.fillMaxWidth().padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = Color(0xFF00535A),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
         }

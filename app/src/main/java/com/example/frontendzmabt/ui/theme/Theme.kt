@@ -9,18 +9,29 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary =   PostCardDark,
+    secondary =  PostBgDark,
+    tertiary = PostTealDark,
+    background=PostFieldBgDark,
+    surface=PostLabelDark,
+    onPrimary = PostTextDark,
+    onSecondary = PostGray
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary =   PostCard,
+    secondary =  PostBg,
+    tertiary = PostTeal,
+    background=PostFieldBg,
+    surface=PostLabel,
+    onPrimary = PostText,
+    onSecondary = PostGrayDark
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -32,7 +43,9 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF1C1B1F),
     */
 )
-
+object ThemeManager {
+    var isDarkMode by mutableStateOf(false)
+}
 @Composable
 fun FrontendZMABTTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -40,18 +53,9 @@ fun FrontendZMABTTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
+    val colors = if (darkTheme) DarkColorScheme else LightColorScheme
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = colors,
         typography = Typography,
         content = content
     )

@@ -7,6 +7,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.example.frontendzmabt.data.API
+import com.example.frontendzmabt.data.model.Post
 import com.example.frontendzmabt.data.SessionManager
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow

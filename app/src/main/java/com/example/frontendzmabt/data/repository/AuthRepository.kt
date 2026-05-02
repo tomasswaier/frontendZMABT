@@ -8,7 +8,7 @@ import com.example.frontendzmabt.data.API
 import com.example.frontendzmabt.data.SessionManager
 import com.google.gson.Gson
 import kotlinx.coroutines.withContext
-import com.example.frontendzmabt.data.User
+import com.example.frontendzmabt.data.model.User
 
 data class LoginResponse(val data: LoginData)
 data class LogOutResponse(val data: LoginData)

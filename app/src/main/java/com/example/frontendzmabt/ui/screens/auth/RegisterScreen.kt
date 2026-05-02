@@ -54,11 +54,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.frontendzmabt.data.repository.AuthRepository
-<<<<<<< Updated upstream
-=======
-import com.example.frontendzmabt.ui.components.ContinueGuestButton
-import com.example.frontendzmabt.ui.components.GoogleLoginButton
->>>>>>> Stashed changes
 import com.example.frontendzmabt.ui.screens.Screen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -90,57 +85,9 @@ fun RegisterScreen(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-<<<<<<< Updated upstream
                 .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
-=======
-                .padding(bottom = 16.dp),
-            singleLine = true
-        )
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email= it },
-            label = { Text("Email") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            singleLine = true
-        )
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            singleLine = true
-        )
-        OutlinedTextField(
-            value = passwordConfirmation,
-            onValueChange = { passwordConfirmation = it },
-            label = { Text("PasswordConfirmation") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            singleLine = true
-        )
-        RegisterButton(username,email,password,passwordConfirmation,navController)
-        GoogleLoginButton(navController)
-        ContinueGuestButton(navController)
-        /*Button(
-            onClick = {
-                // Handle login logic here
-                println("Username: $username")
-                println("Password: $password")
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
->>>>>>> Stashed changes
         ) {
             Spacer(Modifier.height(32.dp))
 

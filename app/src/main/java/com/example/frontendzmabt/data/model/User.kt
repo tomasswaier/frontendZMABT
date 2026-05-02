@@ -1,4 +1,4 @@
-package com.example.frontendzmabt.data
+package com.example.frontendzmabt.data.model
 
 data class User(
     val id: Number?,

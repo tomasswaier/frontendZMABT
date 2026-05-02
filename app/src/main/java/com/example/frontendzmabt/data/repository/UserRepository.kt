@@ -13,7 +13,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
-import com.example.frontendzmabt.data.User
+import com.example.frontendzmabt.data.model.User
 
 data class GetUserResponse(
     val user: User,

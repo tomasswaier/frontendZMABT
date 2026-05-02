@@ -14,6 +14,9 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.SocketManager
 import com.example.frontendzmabt.ui.screens.NavigationManager
+import com.example.frontendzmabt.ui.theme.FrontendZMABTTheme
+import com.example.frontendzmabt.ui.theme.ThemeManager
+
 
 
 class MainActivity : ComponentActivity() {
@@ -21,26 +24,25 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MaterialTheme{
+            FrontendZMABTTheme(darkTheme = ThemeManager.isDarkMode) {
+                val context = LocalContext.current
+
+                LaunchedEffect(Unit) {
+                    val session = SessionManager(context)
+                    val token = session.getToken()
+
+                    if (token != null) {
+                        SocketManager.init(token)
+                    }
+                }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
+                    color = MaterialTheme.colorScheme.background
                 ) {
-                    val context = LocalContext.current
-
-                    LaunchedEffect(Unit) {
-                        val session = SessionManager(context)
-                        val token = session.getToken()
-
-                        if (token != null) {
-                            SocketManager.init(token)
-                        }
-                    }
 
                     NavigationManager()
                 }
-            }
-            /*FrontendZMABTTheme {
+            }            /*FrontendZMABTTheme {
                 FrontendZMABTApp()
             }*/
         }

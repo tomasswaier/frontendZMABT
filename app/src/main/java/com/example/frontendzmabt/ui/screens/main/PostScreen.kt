@@ -29,7 +29,9 @@ import coil.compose.AsyncImage
 import com.example.frontendzmabt.BuildConfig
 import com.example.frontendzmabt.R
 import com.example.frontendzmabt.data.SessionManager
-import com.example.frontendzmabt.data.repository.Post
+import com.example.frontendzmabt.data.SocketManager
+import com.example.frontendzmabt.data.repository.Comment
+import com.example.frontendzmabt.data.model.Post
 import com.example.frontendzmabt.data.repository.CommentRepository
 import com.example.frontendzmabt.data.repository.GetPostResponse
 import com.example.frontendzmabt.data.repository.PostImage
@@ -40,19 +42,26 @@ import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 import com.example.frontendzmabt.ui.screens.Screen
 import com.example.frontendzmabt.ui.screens.ProfileNavArgs
 import com.example.frontendzmabt.ui.screens.toRoute
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 @Composable
 fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
 
     val context = LocalContext.current
-    val session = SessionManager(context)
     val scope = rememberCoroutineScope()
 
     var rating by remember { mutableStateOf(0) }
     var response by remember { mutableStateOf<GetPostResponse?>(null) }
     var post by remember { mutableStateOf<Post?>(null) }
     var images  by remember { mutableStateOf<List<PostImage>?>(null) }
+    var isLoggedIn by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if(SessionManager(context).getToken()!=null) {
+            isLoggedIn=true
+        }
+    }
     LaunchedEffect(Unit) {
         val repo = PostRepository(context)
         response = repo.get(id)
@@ -99,7 +108,7 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
                 Text("MAPA SEM :")
                 if (isUser) {
                     EditPostButton(navController)
-                }else {
+                }else if(isLoggedIn) {
                     RatingPicker(rating=rating,onRatingChanged = { rating = it;
 
                         scope.launch {
@@ -108,9 +117,9 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
                         }
 
                     })
+                    CommentForm(id)
 
                 }
-                CommentForm(id)
                 CommentList(navController, id)
             }
 
