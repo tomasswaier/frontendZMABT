@@ -18,9 +18,9 @@ class SessionManager(private val context: Context
     suspend fun saveToken(token: String, username: String?, email: String?, id: Number?) {
         context.dataStore.edit { prefs ->
             prefs[TOKEN_KEY] = token
-            prefs[USERNAME]= username as String
+            prefs[USERNAME] = username ?: ""
             prefs[USERID] = id.toString()
-            prefs[USEREMAIL]=email as String
+            prefs[USEREMAIL] = email ?: ""
         }
     }
 

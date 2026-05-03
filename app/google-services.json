@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "314357636640",
+    "project_id": "zmabt-7c087",
+    "storage_bucket": "zmabt-7c087.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:314357636640:android:0c7f95aa3ae232d2c5a645",
+        "android_client_info": {
+          "package_name": "com.example.frontendzmabt"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCB0i7BDpNDglSd2z0OfP40USYwGZzJPGA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

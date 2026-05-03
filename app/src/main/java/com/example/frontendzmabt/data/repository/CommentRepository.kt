@@ -75,6 +75,17 @@ class CommentRepository(private val context: Context) {
             pagingSourceFactory = { CommentPagingSource(context,id) }
         ).flow
     }
+    suspend fun delete(commentId: Int): Boolean {
+        return try {
+            val token = SessionManager(context).getToken() ?: return false
+            val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/comments/delete?commentId=$commentId"
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(url, token, "DELETE", "")
+            }
+            Gson().fromJson(result, GeneralResponse::class.java)?.error == false
+        } catch (e: Exception) { e.printStackTrace(); false }
+    }
+
     suspend fun create(commentText: String, postId: Int): Boolean {
         return try {
             SocketManager.sendComment(postId = postId, commentText = commentText)

@@ -22,8 +22,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +36,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -300,6 +305,7 @@ fun PostScreen(navController: NavController, id: Int, isUser: Boolean) {
                             comment = comment,
                             context = context,
                             navController = navController,
+                            ownUserId = ownUserId,
                             isGuest = isGuest,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
@@ -326,6 +332,35 @@ private fun CommentItem(comment: Comment, context: Context, navController: NavCo
     val colors = MaterialTheme.colorScheme
     var isLiked by remember(comment.id) { mutableStateOf(comment.isLiked ?: false) }
     var likeCount by remember(comment.id) { mutableStateOf(comment.likeCount) }
+    var isDeleted by remember(comment.id) { mutableStateOf(false) }
+    var showDeleteDialog by remember(comment.id) { mutableStateOf(false) }
+
+    if (isDeleted) return
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete comment", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to delete this comment?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteDialog = false
+                        scope.launch {
+                            val ok = CommentRepository(context).delete(comment.id)
+                            if (ok) isDeleted = true
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.error)
+                ) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel", color = colors.onSurfaceVariant)
+                }
+            }
+        )
+    }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -380,6 +415,14 @@ private fun CommentItem(comment: Comment, context: Context, navController: NavCo
                         )
                     }
                     Text("$likeCount", fontSize = 11.sp, color = colors.onSurfaceVariant)
+                    if (comment.userId == ownUserId) {
+                        IconButton(
+                            onClick = { showDeleteDialog = true },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = colors.error, modifier = Modifier.size(18.dp))
+                        }
+                    }
                 }
             }
         }

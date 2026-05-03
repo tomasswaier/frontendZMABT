@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -159,12 +160,41 @@ internal fun PostCard(
     var currentDescription by remember(postId) { mutableStateOf(description) }
     var currentStars by remember(postId) { mutableIntStateOf(stars) }
     var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var isDeleted by remember { mutableStateOf(false) }
     var editText by remember { mutableStateOf(description) }
     var editRating by remember { mutableIntStateOf(stars) }
 
     LaunchedEffect(postId) {
         val result = PostRepository(context).get(postId)
         images = result?.postImages ?: emptyList()
+    }
+
+    if (isDeleted) return
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete post", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to delete this post? This cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteDialog = false
+                        scope.launch {
+                            val ok = PostRepository(context).delete(postId)
+                            if (ok) isDeleted = true
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.error)
+                ) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel", color = colors.onSurfaceVariant)
+                }
+            }
+        )
     }
 
     if (showEditDialog) {
@@ -266,6 +296,9 @@ internal fun PostCard(
                         showEditDialog = true
                     }, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit", tint = colors.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                    }
+                    IconButton(onClick = { showDeleteDialog = true }, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = colors.error, modifier = Modifier.size(18.dp))
                     }
                 }
             }

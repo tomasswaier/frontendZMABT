@@ -183,6 +183,17 @@ class PostRepository(private val context: Context) {
 
         return false
     }
+    suspend fun delete(postId: Int): Boolean {
+        return try {
+            val token = SessionManager(context).getToken() ?: return false
+            val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/posts/delete?postId=$postId"
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(url, token, "DELETE", "")
+            }
+            Gson().fromJson(result, GeneralResponse::class.java)?.error == false
+        } catch (e: Exception) { e.printStackTrace(); false }
+    }
+
     suspend fun update(postId: Int, postText: String, rating: Int): Boolean {
         return try {
             val token = SessionManager(context).getToken() ?: return false

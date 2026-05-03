@@ -6,7 +6,9 @@ import android.content.Context
 import android.widget.Toast
 import com.example.frontendzmabt.data.API
 import com.example.frontendzmabt.data.SessionManager
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import com.example.frontendzmabt.data.User
 
@@ -25,6 +27,7 @@ class AuthRepository(private val context: Context) {
             val result = withContext(Dispatchers.IO) {
                 API.callApi(apiUrl, "", "POST", requestBody)
             }
+            android.util.Log.d("GoogleSignIn", "backend raw response: $result")
             val response = Gson().fromJson(result, LoginResponse::class.java)
             SessionManager(context).saveToken(
                 response.data.token,
@@ -32,6 +35,27 @@ class AuthRepository(private val context: Context) {
                 response.data.user.email,
                 response.data.user.id
             )
+            try {
+                val fcmToken = FirebaseMessaging.getInstance().token.await()
+                saveFcmToken(fcmToken)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            true
+        } catch (e: Exception) {
+            android.util.Log.e("GoogleSignIn", "backend call failed: ${e.message}", e)
+            false
+        }
+    }
+
+    suspend fun saveFcmToken(token: String): Boolean {
+        android.util.Log.d("FCM_TOKEN", "token: $token")
+        return try {
+            val sessionToken = SessionManager(context).getToken() ?: return false
+            val apiUrl = BuildConfig.BACKEND_API_URL + BuildConfig.API_VERSION + "/account/fcm-token"
+            withContext(Dispatchers.IO) {
+                API.callApi(apiUrl, sessionToken, "PATCH", mapOf("fcmToken" to token))
+            }
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -83,13 +107,17 @@ class AuthRepository(private val context: Context) {
             val session= SessionManager(context);
             println(response);
             session.saveToken(
-
                 response.data.token,
                 response.data.user.username,
                 response.data.user.email,
                 response.data.user.id
             )
-
+            try {
+                val fcmToken = FirebaseMessaging.getInstance().token.await()
+                saveFcmToken(fcmToken)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
             return true
             //println(session.getToken())
         } catch (e: Exception) {

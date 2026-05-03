@@ -2,6 +2,7 @@ package com.example.frontendzmabt.ui.screens.auth
 
 import android.widget.Toast
 import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.compose.foundation.background
@@ -279,18 +280,29 @@ fun GoogleSignInButton(navController: NavController) {
                         .build()
                     val result = credentialManager.getCredential(context = context, request = request)
                     val credential = result.credential
-                    if (credential is GoogleIdTokenCredential) {
-                        val idToken = credential.idToken
+                    val idToken: String? = when {
+                        credential is GoogleIdTokenCredential -> credential.idToken
+                        credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL ->
+                            GoogleIdTokenCredential.createFrom(credential.data).idToken
+                        else -> null
+                    }
+                    if (idToken != null) {
+                        android.util.Log.d("GoogleSignIn", "idToken obtained, calling backend")
                         val success = AuthRepository(context).signInWithGoogle(idToken)
                         if (success) {
                             navController.navigate(Screen.HomeScreen.route)
                         } else {
                             Toast.makeText(context, "Google sign-in failed", Toast.LENGTH_LONG).show()
                         }
+                    } else {
+                        android.util.Log.e("GoogleSignIn", "unexpected credential type: ${credential::class.java.name}")
+                        Toast.makeText(context, "Unexpected credential type", Toast.LENGTH_LONG).show()
                     }
                 } catch (e: GetCredentialException) {
-                    Toast.makeText(context, "Google sign-in cancelled", Toast.LENGTH_SHORT).show()
+                    android.util.Log.e("GoogleSignIn", "type=${e.type} msg=${e.message}", e)
+                    Toast.makeText(context, "Error: ${e.type} - ${e.message}", Toast.LENGTH_LONG).show()
                 } catch (e: Exception) {
+                    android.util.Log.e("GoogleSignIn", "unexpected: ${e.message}", e)
                     Toast.makeText(context, "Sign-in error: ${e.message}", Toast.LENGTH_LONG).show()
                 } finally {
                     isLoading = false

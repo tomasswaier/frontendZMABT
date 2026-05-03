@@ -1,5 +1,10 @@
 package com.example.frontendzmabt.ui.screens.main
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,10 +18,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,34 +41,68 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.frontendzmabt.data.repository.Place
 import com.example.frontendzmabt.data.repository.PlaceRepository
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.tasks.CancellationTokenSource
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun LocationPickerScreen(navController: NavController) {
     val context = LocalContext.current
     val colors = MaterialTheme.colorScheme
+    val scope = rememberCoroutineScope()
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val defaultPosition = LatLng(48.1486, 17.1077)
     var selectedPosition by remember { mutableStateOf<LatLng?>(null) }
     var selectedPlaceName by remember { mutableStateOf<String?>(null) }
     var places by remember { mutableStateOf<List<Place>>(emptyList()) }
-
+    var hasLocationPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        )
+    }
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(defaultPosition, 10f)
     }
     val customMarkerState = rememberMarkerState()
 
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        hasLocationPermission = granted
+        if (granted) {
+            moveToUserLocation(fusedLocationClient, scope, cameraPositionState) { latLng ->
+                selectedPosition = latLng
+                selectedPlaceName = null
+            }
+        }
+    }
+
     LaunchedEffect(Unit) {
         places = PlaceRepository(context).getAll()
+        if (hasLocationPermission) {
+            moveToUserLocation(fusedLocationClient, scope, cameraPositionState)
+        }
     }
 
     LaunchedEffect(selectedPosition) {
@@ -70,6 +113,8 @@ fun LocationPickerScreen(navController: NavController) {
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
+            properties = MapProperties(isMyLocationEnabled = hasLocationPermission),
+            uiSettings = MapUiSettings(myLocationButtonEnabled = false),
             onMapClick = { latLng ->
                 selectedPosition = latLng
                 selectedPlaceName = null
@@ -87,7 +132,6 @@ fun LocationPickerScreen(navController: NavController) {
                     }
                 )
             }
-
             if (selectedPosition != null && selectedPlaceName == null) {
                 Marker(state = customMarkerState, title = "Selected location")
             }
@@ -106,6 +150,31 @@ fun LocationPickerScreen(navController: NavController) {
                 fontSize = 14.sp,
                 color = colors.onBackground
             )
+        }
+
+        FloatingActionButton(
+            onClick = {
+                if (hasLocationPermission) {
+                    moveToUserLocation(fusedLocationClient, scope, cameraPositionState) { latLng ->
+                        selectedPosition = latLng
+                        selectedPlaceName = null
+                    }
+                } else {
+                    locationPermissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 120.dp),
+            containerColor = colors.surface,
+            elevation = FloatingActionButtonDefaults.elevation(4.dp)
+        ) {
+            Icon(Icons.Default.MyLocation, contentDescription = "Use my location", tint = colors.primary)
         }
 
         Column(
@@ -166,4 +235,23 @@ fun LocationPickerScreen(navController: NavController) {
             }
         }
     }
+}
+
+@SuppressLint("MissingPermission")
+private fun moveToUserLocation(
+    fusedLocationClient: FusedLocationProviderClient,
+    scope: CoroutineScope,
+    cameraPositionState: CameraPositionState,
+    onLocation: (LatLng) -> Unit = {}
+) {
+    fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, CancellationTokenSource().token)
+        .addOnSuccessListener { location ->
+            location?.let {
+                val latLng = LatLng(it.latitude, it.longitude)
+                onLocation(latLng)
+                scope.launch {
+                    cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                }
+            }
+        }
 }
