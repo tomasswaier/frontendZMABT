@@ -51,7 +51,7 @@ class CommentRepository(private val context: Context) {
             if (token.isNullOrEmpty()) return false
             var url="";
             var method="";
-            if (!action) {
+            if (action) {
                 url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/comments/like"
                 method="PUT";
             }else{
@@ -63,9 +63,7 @@ class CommentRepository(private val context: Context) {
             val requestBody = mapOf(
                 "commentId" to commentId,
             )
-            if (token==null|| token=="") {
-                return false
-            }
+            println("url;"+url+" method:"+method+" commendId:"+commentId+" action:"+action)
             val result = withContext(Dispatchers.IO) {
                 API.callApi(url, token, method, requestBody)
             }

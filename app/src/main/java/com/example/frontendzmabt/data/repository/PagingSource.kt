@@ -80,19 +80,15 @@ class CommentPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Comment> {
         return try {
             val page = params.key ?: 1
-            /*val session = SessionManager(context)
+            val session = SessionManager(context)
             val token = session.getToken()
-
-            if (token.isNullOrEmpty()) {
-                return LoadResult.Page(emptyList(), null, null)
-            }*/
             var apiUrl="";
             if ( this.id > 0){
                 apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION + "/comments/getPage?page=$page&postId=$id"
             }
 
             val result = withContext(Dispatchers.IO) {
-                API.callApi(apiUrl, null, "GET", null)
+                API.callApi(apiUrl, token, "GET", null)
             }
             println(result)
 

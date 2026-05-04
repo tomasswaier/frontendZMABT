@@ -70,7 +70,6 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
             images=response?.postImages
         }
     }
-    //TODO add user rating to the post quest
     AppScreenTemplate(
         navController=navController,header= {},
         content={Column(modifier = Modifier.background(
