@@ -1,14 +1,12 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp) //
-
+    alias(libs.plugins.ksp)
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
-    //id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics") // 👈 no version, no apply false
 }
-
 android {
     namespace = "com.example.frontendzmabt"
     compileSdk =36
@@ -96,8 +94,10 @@ dependencies {
     ksp(libs.room.compiler)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)        //
-    implementation("com.google.firebase:firebase-messaging:25.0.1")
+    implementation(libs.firebase.messaging)
 
-    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
-    implementation("com.google.firebase:firebase-analytics")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    //implementation(libs.google.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 }

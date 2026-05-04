@@ -228,7 +228,10 @@ private fun ProfileHeaderContent(
                     if (ThemeManager.isDarkMode) "Switch to Light Mode"
                     else "Switch to Dark Mode"
                 )
-            }
+            }//CRASHLITICS TEST
+            /*Button(onClick = { throw RuntimeException("Test crash") }) {
+                Text("Test crash")
+            }*/
             if (isLoggedIn) {
                 Button(
                     onClick = { navController.navigate(Screen.PostCreateScreen.route) },

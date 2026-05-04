@@ -46,36 +46,45 @@ fun GoogleLoginButton(navController: NavController) {
                         .setFilterByAuthorizedAccounts(false)
                         .build()
                     println(BuildConfig.GOOGLE_CLIENT_ID)
+                    println("meow")
 
 
                     val request = GetCredentialRequest.Builder()
                         .addCredentialOption(googleIdOption)
                         .build()
+                    println("meow1")
 
                     val result = credentialManager.getCredential(
                         request = request,
                         context = context
                     )
 
+                    println("meow2")
                     val credential = result.credential
+                    println(credential)
 
                     if (credential is CustomCredential &&
                         credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
                     ) {
 
+                        println("meow3")
                         val googleCredential = GoogleIdTokenCredential
                             .createFrom(credential.data)
 
                         val idToken = googleCredential.idToken
+                        println("ID TOKEN: $idToken")
 
                         val repo = AuthRepository(context)
                         val success = repo.loginWithGoogle(idToken)
-
                         if (success) {
                             navController.navigate(Screen.HomeScreen.route)
                         } else {
                             Toast.makeText(context, "Google login failed", Toast.LENGTH_LONG).show()
                         }
+                    }else {
+                        println("credentials failed")
+                        println(credential)
+                        println(credentialManager)
                     }
 
                 } catch (e: Exception) {

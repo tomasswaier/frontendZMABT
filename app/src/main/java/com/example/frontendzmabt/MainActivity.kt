@@ -107,6 +107,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val placeIdFromNotification = intent?.getIntExtra("placeId", -1)
+                    println(placeIdFromNotification)
                     NavigationManager(placeIdFromNotification)
                 }
             }            /*FrontendZMABTTheme {

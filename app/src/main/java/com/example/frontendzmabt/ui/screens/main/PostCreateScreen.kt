@@ -146,7 +146,7 @@ fun PostCreateScreen(navController: NavController) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 PostSectionLabel("ADD PHOTOS")
-                                Text("UP TO 5 PHOTOS", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSecondary, letterSpacing = 0.5.sp)
+                                Text("UP TO 1 PHOTO!INDEED!! UPTO ONE IMAGE", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSecondary, letterSpacing = 0.5.sp)
                             }
                             Spacer(Modifier.height(8.dp))
                             PostImageUploader(
@@ -247,14 +247,14 @@ private fun PostImageUploader(imageUri: Uri?, onImageSelected: (Uri) -> Unit) {
             }
         }
 
-        repeat(4) {
+        /*repeat(4) {
             Box(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.background)
             )
-        }
+        }*/
     }
 }
 

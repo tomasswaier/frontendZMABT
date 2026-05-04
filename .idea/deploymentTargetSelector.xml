@@ -4,13 +4,21 @@
     <selectionStates>
       <SelectionState runConfigName="MainApp">
         <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2026-05-04T13:23:55.283585691Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/aliceliddle/.config/.android/avd/Pixel.avd" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
       </SelectionState>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-05-04T00:44:37.878831234Z">
+        <DropdownSelection timestamp="2026-05-04T10:11:33.926516754Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/home/aliceliddle/.config/.android/avd/Medium_Phone.avd" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=f0f9cec8" />
             </handle>
           </Target>
         </DropdownSelection>

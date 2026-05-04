@@ -65,19 +65,18 @@ import kotlinx.coroutines.launch
 @Composable
 fun PlaceScreen(navController: NavController, id: Int) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     var place by remember { mutableStateOf<Place?>(null) }
-    //can be changed later
+
     LaunchedEffect(Unit) {
-        //could be one request but whatever
-        val repo = PlacesRepository(context)//get data from meow
-        place= repo.getInfo(context,id)
-        println(Unit)
+        val repo = PlacesRepository(context)
+        place = repo.getInfo(context, id)
+        println(place!!.aiDescription)
+        println("HUH")
     }
+
     AppScreenTemplate(
         navController = navController,
-        header = {
-            HomeHeader() },
+        header = { HomeHeader() },
         content = {
             Box(
                 modifier = Modifier
@@ -86,18 +85,17 @@ fun PlaceScreen(navController: NavController, id: Int) {
             ) {
                 PostList(
                     navController = navController,
-                    id =  0,
-                    placeId =  id,
+                    id = 0,
+                    placeId = id,
                     isUser = false,
                     headerContent = {
-                        Text("placeholder")
+                        Text(place?.aiDescription ?: "Loading...")
                     }
                 )
             }
         }
     )
 }
-
 @Composable
 private fun PlaceHeaderContent(
     user: User?,

@@ -64,6 +64,7 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
     }
     LaunchedEffect(Unit) {
         val repo = PostRepository(context)
+        println(id)
         response = repo.get(id)
         if(response!=null) {
             post = response?.post

@@ -16,6 +16,9 @@ data class Place(
     val longitude: Float,
     val latitude: Float
 )
+data class GetPlaceResponse(
+    val place: Place?,
+)
 class PlacesRepository(private val context: Context) {
     suspend fun getInfo(context:Context,id:Int): Place?{
         try {
@@ -23,18 +26,18 @@ class PlacesRepository(private val context: Context) {
             val token = session.getToken()
 
             if (token.isNullOrEmpty()) return null
-            var url="";
-            var method="";
-            url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/place/get?placeId=$id"
-            method="GET";
+            println("placeId:"+id)
+            val url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/place/get?placeId=$id"
+            val method="GET";
 
             val result = withContext(Dispatchers.IO) {
                 API.callApi(url, token, method, "")
             }
+            println(result)
             val gson= Gson()
-            val response= gson.fromJson(result, Place::class.java)
+            val response= gson.fromJson(result, GetPlaceResponse::class.java)
             //println(result)
-            return response
+            return response.place
 
         } catch (e: Exception) {
             e.printStackTrace()

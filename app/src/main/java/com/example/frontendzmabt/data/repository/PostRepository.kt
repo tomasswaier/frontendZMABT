@@ -64,9 +64,9 @@ class PostRepository(private val context: Context) {
             val session = SessionManager(context);
             val token=session.getToken()
             val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/posts/get?postId=$id"
-            if (token==null|| token=="") {
+            /*if (token==null|| token=="") {
                 return null
-            }
+            }*/
             val result = withContext(Dispatchers.IO) {
                 API.callApi(apiUrl, null, "GET", "")
             }

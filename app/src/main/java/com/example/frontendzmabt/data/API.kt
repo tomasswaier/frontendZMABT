@@ -24,6 +24,7 @@ class API {
             val response = StringBuilder()
 
             try {
+                //val url = URL("https://wrongurl.meow/com")
                 val url = URL(apiUrl)
                 println(url)
                 val connection = url.openConnection() as HttpURLConnection
@@ -71,6 +72,7 @@ class API {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                throw RuntimeException("Error:connecting to API failed")
                 return e.message.toString()
             }
 
