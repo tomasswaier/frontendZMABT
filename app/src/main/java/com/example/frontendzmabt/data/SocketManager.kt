@@ -7,28 +7,29 @@ import org.json.JSONObject
 
 object SocketManager {
 
-    private lateinit var socket: Socket
+    private var socket: Socket? = null
 
     fun init(token: String) {
         val options = IO.Options()
         options.auth = mapOf("token" to token)
         socket = IO.socket(BuildConfig.BACKEND_API_URL, options)
-        socket.connect()
+        socket?.connect()
     }
 
-    fun connect() { socket.connect() }
-    fun disconnect() { socket.disconnect() }
-    fun getSocket(): Socket = socket
+    fun connect() { socket?.connect() }
+    fun disconnect() { socket?.disconnect() }
+    fun getSocket(): Socket? = socket
 
     fun sendComment(postId: Int, commentText: String): Boolean {
+        val s = socket ?: return false
         val data = JSONObject()
         data.put("postId", postId)
         data.put("content", commentText)
-        socket.emit("saveComment", data.toString())
+        s.emit("saveComment", data.toString())
         return true
     }
 
     fun joinPost(postId: Int) {
-        socket.emit("joinPost", postId)
+        socket?.emit("joinPost", postId)
     }
 }

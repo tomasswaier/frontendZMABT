@@ -108,8 +108,7 @@ fun PostScreen(navController: NavController, id: Int, isUser: Boolean) {
         images = response?.postImages ?: emptyList()
 
         SocketManager.joinPost(id)
-        val socket = SocketManager.getSocket()
-        socket.on("newComment") { args ->
+        SocketManager.getSocket()?.on("newComment") { args ->
             val json = args[0] as JSONObject
             val comment = Gson().fromJson(
                 json.getJSONObject("comment").toString(), Comment::class.java
@@ -119,7 +118,7 @@ fun PostScreen(navController: NavController, id: Int, isUser: Boolean) {
     }
 
     DisposableEffect(id) {
-        onDispose { SocketManager.getSocket().off("newComment") }
+        onDispose { SocketManager.getSocket()?.off("newComment") }
     }
 
     AppScreenTemplate(
@@ -139,14 +138,13 @@ fun PostScreen(navController: NavController, id: Int, isUser: Boolean) {
             }
         },
         content = {
-            if (post == null) {
+            val currentPost = post
+            if (currentPost == null) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = colors.primary)
                 }
                 return@AppScreenTemplate
             }
-
-            val currentPost = post!!
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize().background(colors.background),
@@ -232,7 +230,7 @@ fun PostScreen(navController: NavController, id: Int, isUser: Boolean) {
                                     rating = rating,
                                     onRatingChanged = { newRating ->
                                         rating = newRating
-                                        scope.launch { ChangeRating(context, rating = newRating, postId = id) }
+                                        scope.launch { changeRating(context, rating = newRating, postId = id) }
                                     }
                                 )
                             }
@@ -253,18 +251,29 @@ fun PostScreen(navController: NavController, id: Int, isUser: Boolean) {
                             )
                         } else {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                OutlinedTextField(
-                                    value = commentText,
-                                    onValueChange = { commentText = it },
-                                    placeholder = { Text("Write a comment...", color = colors.onSurfaceVariant) },
-                                    modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = colors.primary,
-                                        unfocusedBorderColor = colors.outline
-                                    ),
-                                    maxLines = 3
-                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    OutlinedTextField(
+                                        value = commentText,
+                                        onValueChange = { if (it.length <= 5000) commentText = it },
+                                        placeholder = { Text("Write a comment...", color = colors.onSurfaceVariant) },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = colors.primary,
+                                            unfocusedBorderColor = colors.outline
+                                        ),
+                                        maxLines = 3
+                                    )
+                                    if (commentText.length > 4800) {
+                                        Text(
+                                            "${commentText.length}/5000",
+                                            fontSize = 10.sp,
+                                            color = colors.error,
+                                            modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                                            textAlign = androidx.compose.ui.text.style.TextAlign.End
+                                        )
+                                    }
+                                }
                                 Spacer(Modifier.width(8.dp))
                                 Box(
                                     modifier = Modifier
@@ -400,7 +409,7 @@ private fun CommentItem(comment: Comment, context: Context, navController: NavCo
                     IconButton(
                         onClick = {
                             scope.launch {
-                                CommentRepository(context).ChangeLikeStatus(context, action = isLiked, commentId = comment.id)
+                                CommentRepository(context).changeLikeStatus(context, action = isLiked, commentId = comment.id)
                             }
                             isLiked = !isLiked
                             likeCount += if (isLiked) 1 else -1
@@ -429,9 +438,6 @@ private fun CommentItem(comment: Comment, context: Context, navController: NavCo
     }
 }
 
-suspend fun ChangeRating(context: Context, rating: Int, postId: Int): Boolean {
+suspend fun changeRating(context: Context, rating: Int, postId: Int): Boolean {
     return PostRepository(context).rate(rating, postId)
 }
-
-@Composable
-fun EditPostButton(navController: NavController) {}

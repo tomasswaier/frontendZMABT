@@ -44,17 +44,20 @@ import com.example.frontendzmabt.data.repository.PlaceRepository
 import com.example.frontendzmabt.data.repository.PostRepository
 import com.example.frontendzmabt.ui.components.PostCard
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @SuppressLint("MissingPermission")
@@ -81,18 +84,7 @@ fun MapScreen(navController: NavController) {
                 permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         hasLocationPermission = granted
         if (granted) {
-            fusedLocationClient.getCurrentLocation(
-                Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-                CancellationTokenSource().token
-            ).addOnSuccessListener { location ->
-                location?.let {
-                    scope.launch {
-                        cameraPositionState.animate(
-                            CameraUpdateFactory.newLatLngZoom(LatLng(it.latitude, it.longitude), 13f)
-                        )
-                    }
-                }
-            }
+            moveToMap(fusedLocationClient, scope, cameraPositionState)
         }
     }
 
@@ -100,18 +92,7 @@ fun MapScreen(navController: NavController) {
         places = PlaceRepository(context).getAll()
         ownUserId = SessionManager(context).getUser().id?.toInt() ?: 0
         if (hasLocationPermission) {
-            fusedLocationClient.getCurrentLocation(
-                Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-                CancellationTokenSource().token
-            ).addOnSuccessListener { location ->
-                location?.let {
-                    scope.launch {
-                        cameraPositionState.animate(
-                            CameraUpdateFactory.newLatLngZoom(LatLng(it.latitude, it.longitude), 13f)
-                        )
-                    }
-                }
-            }
+            moveToMap(fusedLocationClient, scope, cameraPositionState)
         } else {
             locationPermissionLauncher.launch(
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -119,8 +100,7 @@ fun MapScreen(navController: NavController) {
         }
     }
 
-    if (selectedPlace != null) {
-        val place = selectedPlace!!
+    selectedPlace?.let { place ->
         val colors = MaterialTheme.colorScheme
         val repo = remember(place.id) { PostRepository(context) }
         val pagerFlow = remember(place.id) { repo.getPlacePostsPager(place.id) }
@@ -216,4 +196,20 @@ fun MapScreen(navController: NavController) {
             }
         }
     )
+}
+
+@SuppressLint("MissingPermission")
+private fun moveToMap(
+    fusedLocationClient: FusedLocationProviderClient,
+    scope: CoroutineScope,
+    cameraPositionState: CameraPositionState
+) {
+    fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, CancellationTokenSource().token)
+        .addOnSuccessListener { location ->
+            location?.let {
+                scope.launch {
+                    cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(LatLng(it.latitude, it.longitude), 13f))
+                }
+            }
+        }
 }

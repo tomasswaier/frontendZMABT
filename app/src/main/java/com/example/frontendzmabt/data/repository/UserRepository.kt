@@ -66,8 +66,8 @@ class UserRepository(private val context: Context) {
         }
     }
 
-    suspend fun ChangeFollowStatus(
-        changeFollowStatus: Boolean,
+    suspend fun changeFollowStatus(
+        isFollowing: Boolean,
         userId: Int
     ): Boolean {
         try {
@@ -75,7 +75,7 @@ class UserRepository(private val context: Context) {
             val token = session.getToken()
             if (token.isNullOrEmpty()) return false
 
-            val url = if (!changeFollowStatus)
+            val url = if (!isFollowing)
                 "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/account/follow"
             else
                 "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/account/unfollow"

@@ -36,7 +36,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -223,7 +222,7 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(Modifier.height(24.dp))
             Text(
-                "© 2024 SHARE & TRAIL DIGITAL STUDIO",
+                "© 2024 TRAIL & SHARE DIGITAL STUDIO",
                 fontSize = 10.sp,
                 color = colors.onSurfaceVariant.copy(alpha = 0.7f),
                 letterSpacing = 0.5.sp
@@ -322,9 +321,3 @@ fun GoogleSignInButton(navController: NavController) {
     }
 }
 
-@Composable
-fun MoveToRegisterButton(text: MutableState<String>, navController: NavController) {
-    Button(onClick = { navController.navigate(route = Screen.RegisterScreen.route) }) {
-        Text(text = "Don't have an account? Register", fontSize = 16.sp)
-    }
-}

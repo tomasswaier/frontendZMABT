@@ -68,7 +68,7 @@ fun HomeHeader(userInitials: String) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            "Share & Trail",
+            "Trail & Share",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = colors.primary

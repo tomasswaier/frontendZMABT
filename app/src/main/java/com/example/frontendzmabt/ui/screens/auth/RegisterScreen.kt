@@ -37,7 +37,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -199,7 +198,7 @@ fun RegisterScreen(navController: NavController) {
                     }
                     Spacer(Modifier.height(20.dp))
 
-                    RegisterButton(username, email, password, passwordConfirmation, navController)
+                    RegisterButton(username, email, password, passwordConfirmation, termsAccepted, navController)
 
                     Spacer(Modifier.height(20.dp))
 
@@ -281,13 +280,18 @@ fun RegisterButton(
     email: String,
     password: String,
     passwordConfirmation: String,
+    termsAccepted: Boolean,
     navController: NavController
 ) {
     val context: Context = LocalContext.current
     val scope: CoroutineScope = rememberCoroutineScope()
-    val primary = MaterialTheme.colorScheme.primary
+    val colors = MaterialTheme.colorScheme
     Button(
         onClick = {
+            if (!termsAccepted) {
+                Toast.makeText(context, "You must accept the Terms of Service to continue.", Toast.LENGTH_LONG).show()
+                return@Button
+            }
             scope.launch {
                 val repo = AuthRepository(context)
                 val success = repo.register(username, email, password, passwordConfirmation)
@@ -300,15 +304,11 @@ fun RegisterButton(
         },
         modifier = Modifier.fillMaxWidth().height(52.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = primary)
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (termsAccepted) colors.primary else colors.onSurface.copy(alpha = 0.12f)
+        )
     ) {
         Text("Create Account →", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
-@Composable
-fun MoveToLoginButton(text: MutableState<String>, navController: NavController) {
-    Button(onClick = { navController.navigate(route = Screen.LoginScreen.route) }) {
-        Text(text = "have an account? Log IN", fontSize = 16.sp)
-    }
-}

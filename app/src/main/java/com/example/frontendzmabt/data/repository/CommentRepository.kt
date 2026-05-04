@@ -12,7 +12,6 @@ import com.example.frontendzmabt.data.API
 import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.SocketManager
 import com.google.gson.Gson
-import io.socket.client.IO.socket
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
@@ -94,7 +93,7 @@ class CommentRepository(private val context: Context) {
             false
         }
     }
-    suspend fun ChangeLikeStatus(context:Context,action:Boolean,commentId:Int):Boolean{
+    suspend fun changeLikeStatus(context: Context, action: Boolean, commentId: Int): Boolean {
         try {
             val session = SessionManager(context)
             val token = session.getToken()

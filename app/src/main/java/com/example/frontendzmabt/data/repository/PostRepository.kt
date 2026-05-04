@@ -65,22 +65,16 @@ data class PostImage(
     )
 class PostRepository(private val context: Context) {
 
-    suspend fun get(id:Int): GetPostResponse?{
-        try {
-            val session = SessionManager(context);
-            val token = session.getToken() ?: ""
-            val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/posts/get?postId=$id"
-            val result = withContext(Dispatchers.IO) {
-                API.callApi(apiUrl, token, "GET", "")
-            }
-            println(result)
-            val gson= Gson()
-            val response= gson.fromJson(result, GetPostResponse::class.java)
-            return response
+    suspend fun get(id: Int): GetPostResponse? {
+        return try {
+            val token = SessionManager(context).getToken() ?: ""
+            val apiUrl = BuildConfig.BACKEND_API_URL + BuildConfig.API_VERSION + "/posts/get?postId=$id"
+            val result = withContext(Dispatchers.IO) { API.callApi(apiUrl, token, "GET", "") }
+            Gson().fromJson(result, GetPostResponse::class.java)
         } catch (e: Exception) {
             e.printStackTrace()
+            null
         }
-        return null;
     }
 
     suspend fun rate(
@@ -102,10 +96,8 @@ class PostRepository(private val context: Context) {
             val result = withContext(Dispatchers.IO) {
                 API.callApi(url, token, "POST", requestBody)
             }
-            println(result)
-            val gson= Gson()
-            val response= gson.fromJson(result, GeneralResponse::class.java)
-            if (response.error==false) {
+            val response = Gson().fromJson(result, GeneralResponse::class.java)
+            if (response.error == false) {
                 return true
             }
 
@@ -133,47 +125,29 @@ class PostRepository(private val context: Context) {
 
             val client = OkHttpClient()
 
-            var requestBody = MultipartBody.Builder()
+            val multipartBuilder = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("postText", postText)
                 .addFormDataPart("rating", rating.toString())
                 .addFormDataPart("longitude", longitude.toString())
                 .addFormDataPart("latitude", latitude.toString())
 
-            if(imageUri!=null){
+            if (imageUri != null) {
                 val imageRequestBody = uriToRequestBody(context, imageUri)
-                if (imageRequestBody!=null) {
-                    val imagePart = MultipartBody.Part.createFormData(
-                        "image",
-                        "upload.jpg",
-                        imageRequestBody
-                    )
-                    requestBody
-                        .addFormDataPart(
-                            "image",
-                            "upload.jpg",
-                            imageRequestBody
-                        )
+                if (imageRequestBody != null) {
+                    multipartBuilder.addFormDataPart("image", "upload.jpg", imageRequestBody)
                 }
             }
-            val xd=requestBody.build()
 
             val request = Request.Builder()
                 .url(url)
                 .addHeader("Authorization", "Bearer $token")
-                .post(xd)
+                .post(multipartBuilder.build())
                 .build()
 
-            val response = withContext(Dispatchers.IO) {
-                client.newCall(request).execute()
-            }
-
+            val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
             val responseBody = response.body?.string()
-
-            println(responseBody)
-
-            val gson = Gson()
-            val parsed = gson.fromJson(responseBody, GeneralResponse::class.java)
+            val parsed = Gson().fromJson(responseBody, GeneralResponse::class.java)
 
             return parsed.error == false
 

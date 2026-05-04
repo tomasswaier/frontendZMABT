@@ -6,6 +6,7 @@ import android.content.Context
 import android.widget.Toast
 import com.example.frontendzmabt.data.API
 import com.example.frontendzmabt.data.SessionManager
+import com.example.frontendzmabt.data.SocketManager
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import kotlinx.coroutines.tasks.await
@@ -35,11 +36,12 @@ class AuthRepository(private val context: Context) {
                 response.data.user.email,
                 response.data.user.id
             )
+            SocketManager.init(response.data.token)
             try {
                 val fcmToken = FirebaseMessaging.getInstance().token.await()
                 saveFcmToken(fcmToken)
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.w("AuthRepository", "FCM token registration failed", e)
             }
             true
         } catch (e: Exception) {
@@ -58,83 +60,62 @@ class AuthRepository(private val context: Context) {
             }
             true
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("AuthRepository", "saveFcmToken failed", e)
             false
         }
     }
 
-    suspend fun logout():Boolean{
-        try {
-            val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/auth/logout"//+"/api/v1/login"
-            // Make network request on IO thread
-            val result = withContext(Dispatchers.IO) {
-                API.callApi(apiUrl, "", "POST", "")
+    suspend fun logout(): Boolean {
+        return try {
+            val sessionToken = SessionManager(context).getToken() ?: ""
+            val apiUrl = BuildConfig.BACKEND_API_URL + BuildConfig.API_VERSION + "/auth/logout"
+            withContext(Dispatchers.IO) {
+                API.callApi(apiUrl, sessionToken, "POST", "")
             }
-            val gson= Gson()
-            val response= gson.fromJson(result,LoginResponse::class.java)
-            val session= SessionManager(context);
-            println(response);
-            session.logout()
-
-            return true
-            //println(session.getToken())
+            SessionManager(context).logout()
+            true
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("AuthRepository", "logout failed", e)
             false
         }
-        return false;
-
     }
-    suspend fun logIn(username:String, password:String):Boolean{
-        if (!validateLogin(username,password)) return false;
-        println("Username: $username")
-        println("Password: $password")
-        try {
-            val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/auth/login"//+"/api/v1/login"
+
+    suspend fun logIn(username: String, password: String): Boolean {
+        if (!validateLogin(username, password)) return false
+        return try {
+            val apiUrl = BuildConfig.BACKEND_API_URL + BuildConfig.API_VERSION + "/auth/login"
             val requestBody = mapOf(
                 "username" to username,
                 "password" to password
             )
-            println(apiUrl);
-
-            // Make network request on IO thread
             val result = withContext(Dispatchers.IO) {
                 API.callApi(apiUrl, "", "POST", requestBody)
             }
-            println(result)
-            val gson= Gson()
-            val response= gson.fromJson(result,LoginResponse::class.java)
-            val session= SessionManager(context);
-            println(response);
-            session.saveToken(
+            val response = Gson().fromJson(result, LoginResponse::class.java)
+            SessionManager(context).saveToken(
                 response.data.token,
                 response.data.user.username,
                 response.data.user.email,
                 response.data.user.id
             )
+            SocketManager.init(response.data.token)
             try {
                 val fcmToken = FirebaseMessaging.getInstance().token.await()
                 saveFcmToken(fcmToken)
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.w("AuthRepository", "FCM token registration failed", e)
             }
-            return true
-            //println(session.getToken())
+            true
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("AuthRepository", "logIn failed", e)
             false
         }
-        return false;
-
     }
-    suspend fun register(username:String,email:String,password:String,passwordConfirmation:String):Boolean {
-        validateRegister(username,password,passwordConfirmation,email)
-        println("Username: $username")
-        println("email: $email")
-        println("Password: $password")
-        println("Password: $passwordConfirmation")
-        try {
-            val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/auth/signup"
+
+    suspend fun register(username: String, email: String, password: String, passwordConfirmation: String): Boolean {
+        if (!validateRegister(username, password, passwordConfirmation, email)) return false
+        return try {
+            val apiUrl = BuildConfig.BACKEND_API_URL + BuildConfig.API_VERSION + "/auth/signup"
             val requestBody = mapOf(
                 "username" to username,
                 "password" to password,
@@ -144,39 +125,28 @@ class AuthRepository(private val context: Context) {
             val result = withContext(Dispatchers.IO) {
                 API.callApi(apiUrl, "", "POST", requestBody)
             }
-
-            println(result)
-
-            // Skontroluj či je to JSON objekt, nie string
             if (!result.trimStart().startsWith("{")) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, result, Toast.LENGTH_LONG).show()
                 }
                 return false
             }
-
-
-            val gson= Gson()
-            val response= gson.fromJson(result,LoginResponse::class.java)
-            val session= SessionManager(context);
-            session.saveToken(
+            val response = Gson().fromJson(result, LoginResponse::class.java)
+            SessionManager(context).saveToken(
                 response.data.token,
                 response.data.user.username,
                 response.data.user.email,
-                        response.data.user.id
+                response.data.user.id
             )
-            return true
+            SocketManager.init(response.data.token)
+            true
         } catch (e: Exception) {
-            println("REGISTER ERROR: ${e.message}")
-            println("REGISTER CAUSE: ${e.cause}")
+            android.util.Log.e("AuthRepository", "register failed: ${e.message}", e)
             withContext(Dispatchers.Main) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             }
+            false
         }
-        return false
-
-
-
     }
 }
 fun validateRegister(username:String,password:String,passwordConfirmation: String,email: String):Boolean {

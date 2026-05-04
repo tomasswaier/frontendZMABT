@@ -81,11 +81,20 @@ fun PostCreateScreen(navController: NavController) {
     val colors  = MaterialTheme.colorScheme
 
     val onSubmit: () -> Unit = {
-        scope.launch {
-            val repo = PostRepository(context)
-            val success = repo.create(postText, rating, longitude, latitude, imageUri)
-            if (success) navController.navigate(Screen.UserProfileScreen.route)
-            else Toast.makeText(context, "Failed to post content", Toast.LENGTH_LONG).show()
+        when {
+            postText.isBlank() ->
+                Toast.makeText(context, "Please write a description before publishing.", Toast.LENGTH_LONG).show()
+            postText.length > 5000 ->
+                Toast.makeText(context, "Post text cannot exceed 5000 characters.", Toast.LENGTH_LONG).show()
+            latitude == 0.0 && longitude == 0.0 ->
+                Toast.makeText(context, "A location is required to publish a post.", Toast.LENGTH_LONG).show()
+            rating == 0 ->
+                Toast.makeText(context, "Please select a rating before publishing.", Toast.LENGTH_LONG).show()
+            else -> scope.launch {
+                val success = PostRepository(context).create(postText, rating, longitude, latitude, imageUri)
+                if (success) navController.navigate(Screen.UserProfileScreen.route)
+                else Toast.makeText(context, "Failed to post content", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -113,7 +122,7 @@ fun PostCreateScreen(navController: NavController) {
                         Spacer(Modifier.height(8.dp))
                         OutlinedTextField(
                             value = postText,
-                            onValueChange = { postText = it },
+                            onValueChange = { if (it.length <= 5000) postText = it },
                             placeholder = { Text("Tell the story behind this place...", color = colors.onSurfaceVariant, fontSize = 14.sp) },
                             modifier = Modifier.fillMaxWidth().height(120.dp),
                             shape = RoundedCornerShape(12.dp),
@@ -124,8 +133,15 @@ fun PostCreateScreen(navController: NavController) {
                                 focusedBorderColor = colors.primary
                             )
                         )
+                        Text(
+                            "${postText.length}/5000",
+                            fontSize = 11.sp,
+                            color = if (postText.length > 4800) colors.error else colors.onSurfaceVariant,
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.End
+                        )
 
-                        Spacer(Modifier.height(20.dp))
+                        Spacer(Modifier.height(12.dp))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -280,14 +296,3 @@ private fun PostLocationSection(navController: NavController, latitude: Double, 
     }
 }
 
-@Composable
-fun PostForm(navController: NavController) {}
-
-@Composable
-fun ImageUploader(onImageSelected: (Uri) -> Unit) {}
-
-@Composable
-fun PickLocationButton(navController: NavController, latitude: Double, longitude: Double) {}
-
-@Composable
-fun SubmitPostButton(navController: NavController, postText: String, rating: Int, longitude: Double, latitude: Double, imageUri: Uri?) {}

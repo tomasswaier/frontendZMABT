@@ -117,7 +117,7 @@ fun ProfileScreen(navController: NavController, id: Int, isUser: Boolean) {
                             onFollowToggle = {
                                 scope.launch {
                                     val repo = UserRepository(context)
-                                    repo.ChangeFollowStatus(
+                                    repo.changeFollowStatus(
                                         userResponse?.isFollowing ?: false,
                                         if (isUser) ownUserId else id
                                     )
@@ -408,16 +408,3 @@ private fun GuestProfileScreen(navController: NavController) {
     }
 }
 
-@Composable
-fun ProfileHeader(id: Int, isUser: Boolean, navController: NavController) {}
-
-@Composable
-fun AddPostButton(navController: NavController) {}
-
-@Composable
-fun LogOutButton(navController: NavController) {}
-
-suspend fun changeStatus(context: Context, action: Boolean, userId: Int): Boolean {
-    UserRepository(context).ChangeFollowStatus(action, userId = userId)
-    return true
-}

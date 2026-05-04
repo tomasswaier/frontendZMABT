@@ -27,7 +27,6 @@ import com.example.frontendzmabt.data.repository.CommentRepository
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import kotlin.jvm.java
 
 
 @Composable
@@ -47,15 +46,10 @@ fun CommentList(navController: NavController,id: Int) {
 
     LaunchedEffect(id) {
 
-        val socket= SocketManager.getSocket()
-        socket.on("newComment") { args ->
+        SocketManager.getSocket()?.on("newComment") { args ->
             val json = args[0] as JSONObject
 
-            val gson = Gson()
-            val comment = gson.fromJson(json.getJSONObject("comment").toString(), Comment::class.java)
-            println(comment)
-
-            // 🔥 update UI state
+            val comment = Gson().fromJson(json.getJSONObject("comment").toString(), Comment::class.java)
             liveComments.add(0, comment)
         }
     }
@@ -87,7 +81,7 @@ fun CommentList(navController: NavController,id: Int) {
                             Icons.Default.ThumbUp, Icons.Default.ThumbUpOffAlt, isLiked,
                             onClick = {
                                 scope.launch {
-                                    ChangeStatus(context, action = isLiked, commentId = comment.id)
+                                    changeStatus(context, action = isLiked, commentId = comment.id)
                                 }
                                 isLiked = !isLiked;
 
@@ -104,18 +98,13 @@ fun CommentList(navController: NavController,id: Int) {
         }
 
         DisposableEffect(Unit) {
-            val socket = SocketManager.getSocket()
-
             onDispose {
-                socket.off("newComment")
+                SocketManager.getSocket()?.off("newComment")
             }
         }
     }
 }
-suspend fun ChangeStatus(context: Context,action:Boolean,commentId:Int): Boolean {
-
-    val repo = CommentRepository(context)
-    repo.ChangeLikeStatus(context=context,action=action,commentId=commentId)
+suspend fun changeStatus(context: Context, action: Boolean, commentId: Int): Boolean {
+    CommentRepository(context).changeLikeStatus(context = context, action = action, commentId = commentId)
     return true
-
 }

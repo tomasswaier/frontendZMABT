@@ -86,16 +86,11 @@ fun NavigationManager() {
     val startDestination = if (isLoggedIn) "main" else "auth"
     NavHost(navController = navController, startDestination =startDestination) {
         navigation(startDestination = Screen.LoginScreen.route, route = "auth") {
-            composable(route =Screen.LoginScreen.route) {
-                LoginScreen(navController);
+            composable(route = Screen.LoginScreen.route) {
+                LoginScreen(navController)
             }
-            composable(
-                route =Screen.RegisterScreen.route ,
-            ) {
+            composable(route = Screen.RegisterScreen.route) {
                 RegisterScreen(navController)
-            }
-            composable(route =Screen.LoginScreen.route) {
-                LoginScreen(navController);
             }
         }
 

@@ -1,5 +1,6 @@
 package com.example.frontendzmabt.data
 
+import android.util.Log
 import com.google.gson.Gson
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -10,58 +11,44 @@ import java.net.URL
 class API {
 
     companion object {
-        // Function to handle all HTTP methods
         suspend fun callApi(apiUrl: String, token: String, httpMethod: String, requestModel: Any? = null): String {
             val response = StringBuilder()
-
             try {
-                val url = URL(apiUrl)
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = httpMethod // Set the HTTP method (GET, POST, PUT, DELETE)
+                val connection = URL(apiUrl).openConnection() as HttpURLConnection
+                connection.requestMethod = httpMethod
                 connection.connectTimeout = 10000
                 connection.readTimeout = 10000
-
-                // Set request headers for JSON format and authorization
                 connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
                 connection.setRequestProperty("Accept", "application/json")
                 connection.setRequestProperty("Authorization", "Bearer $token")
 
-                // Send request body for POST/PUT methods
                 if (httpMethod == "POST" || httpMethod == "PUT" || httpMethod == "PATCH") {
                     connection.doOutput = true
                     requestModel?.let {
-                        val jsonInput = Gson().toJson(it)
                         OutputStreamWriter(connection.outputStream, Charsets.UTF_8).use { os ->
-                            os.write(jsonInput)
+                            os.write(Gson().toJson(it))
                             os.flush()
                         }
                     }
                 }
 
-                // Handle the response
                 val responseCode = connection.responseCode
-                if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
-                    BufferedReader(InputStreamReader(connection.inputStream, "utf-8")).use { br ->
-                        var responseLine: String?
-                        while (br.readLine().also { responseLine = it } != null) {
-                            response.append(responseLine?.trim())
-                        }
-                    }
+                val stream = if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                    connection.inputStream
                 } else {
-                    // Handle error response
-                    BufferedReader(InputStreamReader(connection.errorStream, "utf-8")).use { br ->
-                        var responseLine: String?
-                        while (br.readLine().also { responseLine = it } != null) {
-                            response.append(responseLine?.trim())
-                        }
+                    Log.e("API", "HTTP $responseCode: ${connection.responseMessage} — $apiUrl")
+                    connection.errorStream
+                }
+                BufferedReader(InputStreamReader(stream, "utf-8")).use { br ->
+                    var line: String?
+                    while (br.readLine().also { line = it } != null) {
+                        response.append(line?.trim())
                     }
-                    println("Error Response Code: $responseCode, Message: ${connection.responseMessage}")
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("API", "callApi failed: ${e.message}", e)
                 return e.message.toString()
             }
-
             return response.toString()
         }
     }
