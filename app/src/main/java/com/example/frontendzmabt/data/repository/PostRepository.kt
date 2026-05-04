@@ -163,6 +163,47 @@ class PostRepository(private val context: Context) {
         return false
     }
 
+    suspend fun edit(
+        postText: String,
+        rating: Int,
+        longitude: Double,
+        latitude: Double,
+        postId: Int,
+    ): Boolean {
+        try {
+            val session = SessionManager(context)
+            val token = session.getToken()
+            println("sending post to edit")
+
+
+            if (token.isNullOrEmpty()) return false
+
+            val url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/posts/update"
+            val requestBody = mapOf(
+                "postId" to  postId,
+                "postText" to postText,
+                "rating" to rating,
+                "longitude" to longitude,
+                "latitude" to latitude
+            )
+
+            val client = OkHttpClient()
+
+
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(url, token, "PATCH", requestBody)
+            }
+
+            println(result)
+
+            val parsed = Gson().fromJson(result, GeneralResponse::class.java)
+            return !parsed.error
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return false
+    }
     suspend fun create(
         postText: String,
         rating: Int,

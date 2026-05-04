@@ -36,6 +36,12 @@ data class ProfileNavArgs(
 fun ProfileNavArgs.toRoute(): String {
     return "profile_screen?userId=$userId"
 }
+data class EditPostNavArgs(
+    val postId: Int,
+)
+fun EditPostNavArgs.toRoute(): String {
+    return "post_edit_screen?postId=$postId"
+}
 data class PlaceNavArgs(
     val placeId: Int,
 )
@@ -60,6 +66,7 @@ sealed class Screen(val route: String) {
     object UserProfileScreen: Screen("user_profile_screen")
     object MapScreen: Screen("map_screen")
     object PostCreateScreen: Screen("post_create_screen")
+    object PostEditScreen: Screen("post_edit_screen?postId={postId}")
     object PostScreen: Screen("post_screen?postId={postId}&isUser={isUser}")
 
 }
@@ -126,6 +133,17 @@ fun NavigationManager(startPlaceId: Int?) {
                 PlaceScreen(navController, placeId)
             }
             composable(
+                route = Screen.PostEditScreen.route,
+                arguments = listOf(
+                    navArgument("postId") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+
+                val postId= backStackEntry.arguments?.getInt("postId") ?: 0
+
+                PostCreateScreen(navController, postId)
+            }
+            composable(
                 route = Screen.ProfileScreen.route,
                 arguments = listOf(
                     navArgument("userId") { type = NavType.IntType }
@@ -146,7 +164,7 @@ fun NavigationManager(startPlaceId: Int?) {
                 MapScreen(navController)
             }
             composable(route = Screen.PostCreateScreen.route) {
-                PostCreateScreen(navController)
+                PostCreateScreen(navController,0)
             }
             composable(
                 route = Screen.PostScreen.route,

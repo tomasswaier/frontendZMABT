@@ -41,6 +41,7 @@ import com.example.frontendzmabt.ui.components.ChangeStatus
 import com.example.frontendzmabt.ui.components.CommentList
 import com.example.frontendzmabt.ui.components.RatingPicker
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
+import com.example.frontendzmabt.ui.screens.EditPostNavArgs
 import com.example.frontendzmabt.ui.screens.Screen
 import com.example.frontendzmabt.ui.screens.ProfileNavArgs
 import com.example.frontendzmabt.ui.screens.toRoute
@@ -110,7 +111,7 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
                 Text("MAPA SEM :")
                 if (isUser) {
                     DeletePostButton(navController,currentPost.id)
-                    EditPostButton(navController)
+                    EditPostButton(navController,currentPost.id)
                 }else if(isLoggedIn) {
                     RatingPicker(rating=rating,onRatingChanged = { rating = it;
 
@@ -173,7 +174,11 @@ fun CommentForm(postId :Int){
             //onLocationPicked(1.0, 1.0)
             scope.launch {
                 val repo = CommentRepository(context)
-                val success = repo.create(commentText,postId)
+                if (commentText.length>100) {
+                    Toast.makeText(context, "Comment needs to be shorter than 100 characters", Toast.LENGTH_LONG).show()
+                }else {
+                    val success = repo.create(commentText, postId)
+                }
 
                 /*if (success) {
                     println("request successfully sent");
@@ -193,12 +198,14 @@ fun CommentForm(postId :Int){
 
 
 @Composable
-fun EditPostButton(navController: NavController) {
+fun EditPostButton(navController: NavController,postId:Int) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     Button(onClick = {
-        navController.navigate(Screen.PostScreen.route)
+        navController.navigate(
+            EditPostNavArgs(postId).toRoute()
+        )
     }) {
         Text("Edit post")
     }

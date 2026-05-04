@@ -62,6 +62,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.frontendzmabt.data.API
+import com.example.frontendzmabt.data.model.Post
+import com.example.frontendzmabt.data.repository.GetPostResponse
 import com.example.frontendzmabt.data.repository.PlacesRepository
 import com.example.frontendzmabt.data.repository.PostRepository
 import com.example.frontendzmabt.ui.components.RatingPicker
@@ -71,10 +73,12 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun PostCreateScreen(navController: NavController) {
+fun PostCreateScreen(navController: NavController,postId:Int) {
     var postText by remember { mutableStateOf("") }
-    var rating by remember { mutableStateOf(0) }
+    var rating by remember { mutableStateOf(3) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var post by remember { mutableStateOf<Post?>(null) }
+    var response by remember { mutableStateOf<GetPostResponse?>(null) }
 
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
     val latitude  = savedStateHandle?.getStateFlow("latitude",  0.0)?.collectAsState()?.value ?: 0.0
@@ -85,18 +89,53 @@ fun PostCreateScreen(navController: NavController) {
     var online by remember{mutableStateOf(true)}
     LaunchedEffect(Unit) {
         online=API().isOnline(context)
-
+    }
+    LaunchedEffect(Unit) {
+        val repo = PostRepository(context)
+        println(postId)
+        response = repo.get(postId)
+        if(response!=null && response?.post!=null) {
+            post = response?.post
+            rating=post!!.stars
+            postText=post!!.description
+        }
     }
 
     val onSubmit: () -> Unit = {
         scope.launch {
-            val repo = PostRepository(context)
-            val success = repo.create(postText, rating, longitude, latitude, imageUri,online)
-            if (success && !online) {
-                Toast.makeText(context,"Post will be uploaded once you connect to the interner",Toast.LENGTH_LONG).show()
-                navController.navigate(Screen.UserProfileScreen.route)
-            } else if (success) navController.navigate(Screen.UserProfileScreen.route)
-            else Toast.makeText(context, "Failed to post content", Toast.LENGTH_LONG).show()
+            //I'm well aware this should be tested on backend too.. mind ur damn business.
+            // I'm so sorry for anyone looking
+            if(postText.toString().length>=100) {
+                    Toast.makeText(context,"Text must be shorter than 100 characters. Limit of 100(and not 5000) is set only for easier presentation",Toast.LENGTH_LONG).show()
+            }else {
+                if (postId==0) {
+                    if (longitude==0.0 && latitude==0.0) {
+                        Toast.makeText(context, "Please select a location", Toast.LENGTH_LONG)
+                            .show()
+                    }else{
+                        val repo = PostRepository(context)
+                        val success =
+                            repo.create(postText, rating, longitude, latitude, imageUri, online)
+                        if (success && !online) {
+                            Toast.makeText(
+                                context,
+                                "Post will be uploaded once you connect to the interner",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            navController.navigate(Screen.UserProfileScreen.route)
+                        } else if (success) navController.navigate(Screen.UserProfileScreen.route)
+                        else Toast.makeText(context, "Failed to post content", Toast.LENGTH_LONG)
+                            .show()
+                    }
+                }else{
+                    val repo = PostRepository(context)
+                    val success =
+                        repo.edit(postText, rating, longitude, latitude, postId)
+                    if (success) navController.navigate(Screen.UserProfileScreen.route)
+                    else Toast.makeText(context, "Failed to post content", Toast.LENGTH_LONG).show()
+
+                }
+            }
         }
     }
 
@@ -137,7 +176,7 @@ fun PostCreateScreen(navController: NavController) {
                             )
                         )
 
-                        if (online) {
+                        if (online && postId==0) {
                             Spacer(Modifier.height(20.dp))
 
                             Row(
@@ -156,9 +195,15 @@ fun PostCreateScreen(navController: NavController) {
 
                         Spacer(Modifier.height(20.dp))
 
-                        PostSectionLabel("LOCATION")
-                        Spacer(Modifier.height(8.dp))
-                        PostLocationSection(navController = navController, latitude = latitude, longitude = longitude)
+                        if (postId==0) {
+                            PostSectionLabel("LOCATION")
+                            Spacer(Modifier.height(8.dp))
+                            PostLocationSection(
+                                navController = navController,
+                                latitude = latitude,
+                                longitude = longitude
+                            )
+                        }
 
                         Spacer(Modifier.height(20.dp))
 
