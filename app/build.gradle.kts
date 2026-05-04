@@ -1,16 +1,16 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    alias(libs.plugins.kotlin.android)
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics") // 👈 no version, no apply false
 }
-
 android {
     namespace = "com.example.frontendzmabt"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk =36
+
 
     defaultConfig {
         applicationId = "com.example.frontendzmabt"
@@ -22,6 +22,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String","BACKEND_API_URL","\"${project.findProperty("BACKEND_API_URL")}\"")
+        buildConfigField("String","GOOGLE_CLIENT_ID","\"${project.findProperty("GOOGLE_CLIENT_ID")}\"")
         buildConfigField("String","MAPS_API_KEY","\"${project.findProperty("MAPS_API_KEY")}\"")
         buildConfigField("String","API_VERSION","\"${project.findProperty("API_VERSION")}\"")
     }
@@ -43,6 +44,10 @@ android {
         buildConfig=true
         compose = true
     }
+    buildToolsVersion = "34.0.0"
+    kotlinOptions {
+        jvmTarget = "11"
+    }
 }
 
 dependencies {
@@ -57,6 +62,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
+    implementation(libs.core.ktx)
+    implementation(libs.core.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -79,4 +86,18 @@ dependencies {
     implementation(libs.maps.compose)
     implementation(libs.coil.compose)
     implementation(libs.okhttp)
+    implementation(libs.socket.io.client)
+
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+    ksp(libs.room.compiler)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)        //
+    implementation(libs.firebase.messaging)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    //implementation(libs.google.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 }

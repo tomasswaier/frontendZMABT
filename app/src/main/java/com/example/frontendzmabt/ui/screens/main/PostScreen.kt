@@ -1,21 +1,17 @@
 package com.example.frontendzmabt.ui.screens.main
 
 
-import android.R.id.list
-import android.content.ClipData
-import android.media.Image
+import android.annotation.SuppressLint
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -34,38 +30,50 @@ import coil.compose.AsyncImage
 import com.example.frontendzmabt.BuildConfig
 import com.example.frontendzmabt.R
 import com.example.frontendzmabt.data.SessionManager
-import com.example.frontendzmabt.data.repository.Post
+import com.example.frontendzmabt.data.SocketManager
+import com.example.frontendzmabt.data.repository.Comment
+import com.example.frontendzmabt.data.model.Post
 import com.example.frontendzmabt.data.repository.CommentRepository
 import com.example.frontendzmabt.data.repository.GetPostResponse
 import com.example.frontendzmabt.data.repository.PostImage
 import com.example.frontendzmabt.data.repository.PostRepository
+import com.example.frontendzmabt.ui.components.ChangeStatus
 import com.example.frontendzmabt.ui.components.CommentList
+import com.example.frontendzmabt.ui.components.RatingPicker
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
+import com.example.frontendzmabt.ui.screens.EditPostNavArgs
 import com.example.frontendzmabt.ui.screens.Screen
 import com.example.frontendzmabt.ui.screens.ProfileNavArgs
 import com.example.frontendzmabt.ui.screens.toRoute
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 @Composable
 fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
 
     val context = LocalContext.current
-    val session = SessionManager(context)
+    val scope = rememberCoroutineScope()
 
+    var rating by remember { mutableStateOf(0) }
     var response by remember { mutableStateOf<GetPostResponse?>(null) }
     var post by remember { mutableStateOf<Post?>(null) }
     var images  by remember { mutableStateOf<List<PostImage>?>(null) }
+    var isLoggedIn by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        val repo = PostRepository(context)
-        response = repo.get(id)
-        if(response!=null) {
-            post = response!!.post
-            images=response!!.postImages
+        if(SessionManager(context).getToken()!=null) {
+            isLoggedIn=true
         }
     }
-    /*if (post) {
-        username= user!!.username.toString()
-    }*/
+    LaunchedEffect(Unit) {
+        val repo = PostRepository(context)
+        println(id)
+        response = repo.get(id)
+        if(response!=null) {
+            post = response?.post
+            images=response?.postImages
+        }
+    }
     AppScreenTemplate(
         navController=navController,header= {},
         content={Column(modifier = Modifier.background(
@@ -74,15 +82,16 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
 
         ) {
             //PostList(id,isUser)
-            if (post==null){
+            var currentPost=post
+            if (currentPost==null){
                 Text("Failed to load post")
             }else {
                 Row {
                     IconButton(
                         onClick = {
-                            navController.navigate(ProfileNavArgs(post!!.userId).toRoute()) {
-                                launchSingleTop = true
-                            }
+                                navController.navigate(ProfileNavArgs(currentPost.userId).toRoute()) {
+                                    launchSingleTop = true
+                                }
                         }
                     ) {
                         Icon(
@@ -92,18 +101,29 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
 
                             )
                     }
-                    Text("userId:" + post?.userId)
+                    Text("userId:" + currentPost.userId)
                 }
-                Text("userId:" + post?.description)
-                images?.count()?.let {
-                    if (it>0)
-                        PostImages(images!!)
+                Text("userId:" + currentPost.description)
+
+                images?.takeIf { it.isNotEmpty() }?.let {
+                    PostImages(it)
                 }
                 Text("MAPA SEM :")
                 if (isUser) {
-                    EditPostButton(navController)
+                    DeletePostButton(navController,currentPost.id)
+                    EditPostButton(navController,currentPost.id)
+                }else if(isLoggedIn) {
+                    RatingPicker(rating=rating,onRatingChanged = { rating = it;
+
+                        scope.launch {
+                            val success = ChangeRating(context, rating=rating,postId=id)
+                            println("Rating changed: $success")
+                        }
+
+                    })
+                    CommentForm(id)
+
                 }
-                CommentForm(id)
                 CommentList(navController, id)
             }
 
@@ -111,6 +131,10 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
 
         }}
     )
+}
+suspend fun ChangeRating(context: Context, rating: Int,postId:Int): Boolean {
+    val repo = PostRepository(context)
+    return repo.rate(rating,postId)
 }
 
 @Composable
@@ -150,16 +174,19 @@ fun CommentForm(postId :Int){
             //onLocationPicked(1.0, 1.0)
             scope.launch {
                 val repo = CommentRepository(context)
-                val success = repo.create(commentText,postId)
+                if (commentText.length>100) {
+                    Toast.makeText(context, "Comment needs to be shorter than 100 characters", Toast.LENGTH_LONG).show()
+                }else {
+                    val success = repo.create(commentText, postId)
+                }
 
-                if (success) {
-                    println("comment sucessfully posted");
+                /*if (success) {
+                    println("request successfully sent");
                     //navController.navigate(Screen.HomeScreen.route)
                 } else {
-                    Toast.makeText(context, "Login failed", Toast.LENGTH_LONG).show()
-                }
+                    Toast.makeText(context, "Message failed to send internally", Toast.LENGTH_LONG).show()
+                }*/
             }
-            println("Longitude and Latitude set to 1.0")
 
         }) {
             Text("postComment")
@@ -171,14 +198,36 @@ fun CommentForm(postId :Int){
 
 
 @Composable
-fun EditPostButton(navController: NavController) {
+fun EditPostButton(navController: NavController,postId:Int) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     Button(onClick = {
-        //TODO fix
-        navController.navigate(Screen.PostScreen.route)
+        navController.navigate(
+            EditPostNavArgs(postId).toRoute()
+        )
     }) {
         Text("Edit post")
+    }
+}
+@Composable
+fun DeletePostButton(navController: NavController,postId:Int) {
+    val context = LocalContext.current
+
+    val scope = rememberCoroutineScope()
+    Button(onClick = {
+        //TODO fix
+
+        scope.launch {
+            val repo = PostRepository(context)
+            val success= repo.delete(postId=postId)
+            if (success) {
+                navController.navigate(Screen.UserProfileScreen.route)
+            }else{
+                Toast.makeText(context,"Post couldn't be deleted",Toast.LENGTH_LONG).show()
+            }
+        }
+    }) {
+        Text("delete post")
     }
 }

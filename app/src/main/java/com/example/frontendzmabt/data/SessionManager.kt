@@ -3,6 +3,7 @@ package com.example.frontendzmabt.data
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.example.frontendzmabt.data.model.User
 import kotlinx.coroutines.flow.first
 
 class SessionManager(private val context: Context
@@ -31,7 +32,7 @@ class SessionManager(private val context: Context
     suspend fun getUser(): User {
         val prefs = context.dataStore.data.first()
         return User(
-            id = prefs[USERID]?.toInt(),
+            id = prefs[USERID]?.toDoubleOrNull()?.toInt(),
             username = prefs[USERNAME],
             email = prefs[USEREMAIL],
             createdAt = "",

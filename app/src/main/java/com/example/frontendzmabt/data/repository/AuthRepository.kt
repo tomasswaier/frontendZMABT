@@ -8,7 +8,7 @@ import com.example.frontendzmabt.data.API
 import com.example.frontendzmabt.data.SessionManager
 import com.google.gson.Gson
 import kotlinx.coroutines.withContext
-import com.example.frontendzmabt.data.User
+import com.example.frontendzmabt.data.model.User
 
 data class LoginResponse(val data: LoginData)
 data class LogOutResponse(val data: LoginData)
@@ -28,7 +28,7 @@ class AuthRepository(private val context: Context) {
             val gson= Gson()
             val response= gson.fromJson(result,LoginResponse::class.java)
             val session= SessionManager(context);
-            println(response);
+            //println(response);
             session.logout()
 
             return true
@@ -50,19 +50,15 @@ class AuthRepository(private val context: Context) {
                 "username" to username,
                 "password" to password
             )
-            println(apiUrl);
 
             // Make network request on IO thread
             val result = withContext(Dispatchers.IO) {
                 API.callApi(apiUrl, "", "POST", requestBody)
             }
-            println(result)
             val gson= Gson()
             val response= gson.fromJson(result,LoginResponse::class.java)
             val session= SessionManager(context);
-            println(response);
             session.saveToken(
-
                 response.data.token,
                 response.data.user.username,
                 response.data.user.email,
@@ -96,18 +92,32 @@ class AuthRepository(private val context: Context) {
                 API.callApi(apiUrl, "", "POST", requestBody)
             }
 
+            //println(result)
+
+            // Skontroluj či je to JSON objekt, nie string
+            if (!result.trimStart().startsWith("{")) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, result, Toast.LENGTH_LONG).show()
+                }
+                return false
+            }
+
+
             val gson= Gson()
             val response= gson.fromJson(result,LoginResponse::class.java)
+            //println(response)
             val session= SessionManager(context);
+
             session.saveToken(
                 response.data.token,
                 response.data.user.username,
                 response.data.user.email,
                         response.data.user.id
             )
-            println(result);
             return true
         } catch (e: Exception) {
+            println("REGISTER ERROR: ${e.message}")
+            println("REGISTER CAUSE: ${e.cause}")
             withContext(Dispatchers.Main) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             }
@@ -116,6 +126,36 @@ class AuthRepository(private val context: Context) {
 
 
 
+    }
+    suspend fun loginWithGoogle(idToken: String): Boolean {
+        try {
+            val apiUrl = BuildConfig.BACKEND_API_URL + BuildConfig.API_VERSION + "/auth/google"
+
+            val requestBody = mapOf(
+                "idToken" to idToken
+            )
+
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(apiUrl, "", "POST", requestBody)
+            }
+
+            val gson = Gson()
+            val response = gson.fromJson(result, LoginResponse::class.java)
+
+            val session = SessionManager(context)
+
+            session.saveToken(
+                response.data.token,
+                response.data.user.username,
+                response.data.user.email,
+                response.data.user.id
+            )
+
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return false
     }
 }
 fun validateRegister(username:String,password:String,passwordConfirmation: String,email: String):Boolean {

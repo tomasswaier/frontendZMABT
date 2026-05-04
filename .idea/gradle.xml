@@ -15,11 +15,12 @@
       </GradleProjectSettings>
       <GradleProjectSettings>
         <option name="testRunner" value="CHOOSE_PER_TEST" />
-        <option name="externalProjectPath" value="$USER_HOME$/nixos/projects/fuckME/frontendZMABT" />
+        <option name="externalProjectPath" value="C:\Users\alexd\Zmabt\frontendZMABT" />
+        <option name="gradleJvm" value="jbr-21" />
         <option name="modules">
           <set>
-            <option value="$USER_HOME$/nixos/projects/fuckME/frontendZMABT" />
-            <option value="$USER_HOME$/nixos/projects/fuckME/frontendZMABT/app" />
+            <option value="C:\Users\alexd\Zmabt\frontendZMABT" />
+            <option value="C:\Users\alexd\Zmabt\frontendZMABT/app" />
           </set>
         </option>
       </GradleProjectSettings>

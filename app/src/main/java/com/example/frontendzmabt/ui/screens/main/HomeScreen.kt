@@ -1,65 +1,69 @@
 package com.example.frontendzmabt.ui.screens.main
 
-import android.widget.Toast
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Button
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.frontendzmabt.BuildConfig
-import com.example.frontendzmabt.data.API
-import com.example.frontendzmabt.ui.screens.AppScreenTemplate
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.ui.components.PostList
+import com.example.frontendzmabt.ui.screens.AppScreenTemplate
+
 
 @Composable
 fun HomeScreen(navController: NavController) {
     AppScreenTemplate(
-        navController= navController,
-        header={Text("Header")}
-        ,content={Column{
-            Text("Body")
-            PostList(navController,0,false)
+        navController = navController,
+        header = { HomeHeader() },
+        content = {
+            Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                PostList(navController, 0, 0,false)
             }
         }
     )
 }
+
 @Composable
-fun TestApiButton() {
-    val context = LocalContext.current
-
-    // Coroutine scope tied to the composable
-    val scope = rememberCoroutineScope()
-
-    Button(onClick = {
-        scope.launch(Dispatchers.IO) {
-            try {
-                val apiUrl = BuildConfig.BACKEND_API_URL
-                val token = "testValue"
-                val requestBody = mapOf(
-                    "test" to "fungujem?",
-                    "meow" to "meow"
-                )
-
-                // Make network request on IO thread
-                val result = API.callApi(apiUrl, token, "POST", requestBody)
-
-                // Switch to Main thread to show a Toast or update UI
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Result: $result", Toast.LENGTH_LONG).show()
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }) {
-        Text("CLICK ME")
+fun HomeHeader() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .windowInsetsPadding(WindowInsets.statusBars)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            "Share & Trail",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color =MaterialTheme.colorScheme.tertiary
+        )
     }
 }
-

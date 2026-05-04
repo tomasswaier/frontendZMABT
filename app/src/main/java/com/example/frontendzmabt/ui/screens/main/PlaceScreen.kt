@@ -1,6 +1,4 @@
 package com.example.frontendzmabt.ui.screens.main
-
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -50,47 +47,36 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.paging.LoadState
 import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.model.User
 import com.example.frontendzmabt.data.repository.AuthRepository
 import com.example.frontendzmabt.data.repository.GetUserResponse
+import com.example.frontendzmabt.data.repository.Place
+import com.example.frontendzmabt.data.repository.PlacesRepository
+import com.example.frontendzmabt.data.repository.PostRepository
 import com.example.frontendzmabt.data.repository.UserRepository
 import com.example.frontendzmabt.ui.components.PostList
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 import com.example.frontendzmabt.ui.screens.Screen
 import com.example.frontendzmabt.ui.theme.ThemeManager
 import kotlinx.coroutines.launch
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-
 
 
 @Composable
-fun ProfileScreen(navController: NavController, id: Int, isUserIn: Boolean) {
+fun PlaceScreen(navController: NavController, id: Int) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var userResponse by remember { mutableStateOf<GetUserResponse?>(null) }
-    //can be changed later
+    var place by remember { mutableStateOf<Place?>(null) }
 
-    var isUser by remember { mutableStateOf(isUserIn) }
     LaunchedEffect(Unit) {
-        val repo = UserRepository(context)
-        if (isUserIn) {
-            userResponse = repo.getOwnProfile()
-        } else {
-            val session = SessionManager(context)
-            val localUser = session.getUser()
-            val ownUserId = localUser.id?.toInt() ?: 0
-            isUser=ownUserId==id
-            userResponse = repo.get(id)
-        }
-        println(Unit)
+        val repo = PlacesRepository(context)
+        place = repo.getInfo(context, id)
+        println(place!!.aiDescription)
+        println("HUH")
     }
+
     AppScreenTemplate(
         navController = navController,
-        header = {
-            HomeHeader() },
+        header = { HomeHeader() },
         content = {
             Box(
                 modifier = Modifier
@@ -99,62 +85,19 @@ fun ProfileScreen(navController: NavController, id: Int, isUserIn: Boolean) {
             ) {
                 PostList(
                     navController = navController,
-                    id =  id,
-                    placeId=0,
-                    isUser = isUser,
+                    id = 0,
+                    placeId = id,
+                    isUser = false,
                     headerContent = {
-                        ProfileHeaderContent(
-                            user = userResponse?.user,
-                            isUser = isUser,
-                            isFollowing = userResponse?.isFollowing ?: false,
-                            navController = navController,
-                            onFollowToggle = {
-                                scope.launch {
-                                    val repo = UserRepository(context)
-                                    repo.ChangeFollowStatus(
-                                        userResponse?.isFollowing ?: false,
-                                        userId= id
-                                    )
-                                    userResponse = repo.get(id)
-                                }
-                            },
-                            onLogOut = {
-                                scope.launch {
-                                    val repo = AuthRepository(context)
-                                    val success = repo.logout()
-                                    if (success) navController.navigate(Screen.LoginScreen.route)
-                                    else Toast.makeText(
-                                        context,
-                                        "Logout failed",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            },
-                            onBioUpdate = { newBio ->
-                                scope.launch {
-                                    val repo = UserRepository(context)
-                                    val success = repo.updateBio(newBio)
-                                    if (success) {
-                                        userResponse = repo.getOwnProfile()
-                                    } else {
-                                        Toast.makeText(
-                                            context,
-                                            "Bio sa nepodarilo uložiť",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-                            }
-                        )
+                        Text(place?.aiDescription ?: "Loading...")
                     }
                 )
             }
         }
     )
 }
-
 @Composable
-private fun ProfileHeaderContent(
+private fun PlaceHeaderContent(
     user: User?,
     isUser: Boolean,
     isFollowing: Boolean,
@@ -168,15 +111,7 @@ private fun ProfileHeaderContent(
     val userInitials by remember(user) {
         mutableStateOf(user?.username?.take(2)?.uppercase() ?: "")
     }
-    val context = LocalContext.current
-    var isLoggedIn by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        if(SessionManager(context).getToken()!=null) {
-            isLoggedIn=true
-        }
-    }
-
-    if (showBioDialog && isLoggedIn) {
+    if (showBioDialog) {
         AlertDialog(
             onDismissRequest = { showBioDialog = false },
             title = { Text("Upraviť bio", fontWeight = FontWeight.Bold) },
@@ -228,25 +163,16 @@ private fun ProfileHeaderContent(
                     if (ThemeManager.isDarkMode) "Switch to Light Mode"
                     else "Switch to Dark Mode"
                 )
-            }//CRASHLITICS TEST
-            /*Button(onClick = { throw RuntimeException("Test crash") }) {
-                Text("Test crash")
-            }*/
-            if (isLoggedIn) {
-                Button(
-                    onClick = { navController.navigate(Screen.PostCreateScreen.route) },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Create New Post", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                }
+            }
+            Button(
+                onClick = { navController.navigate(Screen.PostCreateScreen.route) },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Create New Post", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
             }
             Spacer(Modifier.height(24.dp))
         }
@@ -287,7 +213,8 @@ private fun ProfileHeaderContent(
 
         Spacer(Modifier.height(12.dp))
 
-        if (isUser && isLoggedIn) {
+        // Bio sekcia
+        if (isUser) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 8.dp)
@@ -322,7 +249,7 @@ private fun ProfileHeaderContent(
 
         Spacer(Modifier.height(16.dp))
 
-        if (isUser ) {
+        if (isUser) {
             Button(
                 onClick = onLogOut,
                 modifier = Modifier.height(44.dp),
@@ -331,9 +258,9 @@ private fun ProfileHeaderContent(
             ) {
                 Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text(if(isLoggedIn)"Log Out" else "Log In", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text("Log Out", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             }
-        } else if (isLoggedIn) {
+        } else {
             OutlinedButton(
                 onClick = onFollowToggle,
                 modifier = Modifier.height(44.dp),
@@ -346,10 +273,6 @@ private fun ProfileHeaderContent(
                     fontWeight = FontWeight.SemiBold
                 )
             }
-        }else
-        {
-            Text("Something went wrong")
-
         }
 
         Spacer(Modifier.height(20.dp))
@@ -359,7 +282,7 @@ private fun ProfileHeaderContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-        Text("Timeline", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+            Text("Timeline", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
             HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFCFD8DC))
         }
 

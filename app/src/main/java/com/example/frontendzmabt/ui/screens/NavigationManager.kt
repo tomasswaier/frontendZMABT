@@ -1,4 +1,5 @@
 package com.example.frontendzmabt.ui.screens
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -12,13 +13,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import com.example.frontendzmabt.R
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.frontendzmabt.data.SessionManager
-import com.example.frontendzmabt.data.User
+import com.example.frontendzmabt.data.model.User
 import com.example.frontendzmabt.ui.screens.auth.LoginScreen
 import com.example.frontendzmabt.ui.screens.auth.RegisterScreen
 import com.example.frontendzmabt.ui.screens.main.HomeScreen
 import com.example.frontendzmabt.ui.screens.main.MapScreen
+import com.example.frontendzmabt.ui.screens.main.PlaceScreen
 import com.example.frontendzmabt.ui.screens.main.ProfileScreen
 import com.example.frontendzmabt.ui.screens.main.PostCreateScreen
 import com.example.frontendzmabt.ui.screens.main.PostScreen
@@ -29,6 +35,18 @@ data class ProfileNavArgs(
 )
 fun ProfileNavArgs.toRoute(): String {
     return "profile_screen?userId=$userId"
+}
+data class EditPostNavArgs(
+    val postId: Int,
+)
+fun EditPostNavArgs.toRoute(): String {
+    return "post_edit_screen?postId=$postId"
+}
+data class PlaceNavArgs(
+    val placeId: Int,
+)
+fun PlaceNavArgs.toRoute(): String {
+    return "place_screen?placeId=$placeId"
 }
 data class PostNavArgs(
     val postId: Int,
@@ -44,26 +62,47 @@ sealed class Screen(val route: String) {
     object RegisterScreen: Screen("register_screen")
     object HomeScreen: Screen("home_screen")
     object ProfileScreen: Screen("profile_screen?userId={userId}")
+    object PlaceScreen: Screen("place_screen?placeId={placeId}")
     object UserProfileScreen: Screen("user_profile_screen")
     object MapScreen: Screen("map_screen")
     object PostCreateScreen: Screen("post_create_screen")
+    object PostEditScreen: Screen("post_edit_screen?postId={postId}")
     object PostScreen: Screen("post_screen?postId={postId}&isUser={isUser}")
 
 }
-enum class AppNavigation(var label:String,val route:String,val icon:Int,){
-    Profile("Profile",Screen.UserProfileScreen.route,R.drawable.ic_account_box),
-    HOME("Home",Screen.HomeScreen.route,R.drawable.ic_home),
-    MAP("Map",Screen.MapScreen.route,R.drawable.ic_launcher_background),
-    //Home("Home",R.drawable.ic_home),
+enum class AppNavigation(var label: String, val route: String, val icon: ImageVector) {
+    HOME("FEED", Screen.HomeScreen.route, Icons.Default.Home),
+    MAP("MAP", Screen.MapScreen.route, Icons.Default.Map),
+    Profile("PROFILE", Screen.UserProfileScreen.route, Icons.Default.Person),
 
 }
 
 
 @Composable
-fun NavigationManager() {
+fun NavigationManager(startPlaceId: Int?) {
     val navController = rememberNavController()
+    var isLoading by remember { mutableStateOf(true) }
+    var isLoggedIn by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        val session = SessionManager(context)
+        val user = session.getUser()
 
-    NavHost(navController = navController, startDestination ="auth") {
+        isLoggedIn = user?.id != null
+        isLoading = false
+    }
+    if (isLoading) {
+        Text("Loading...") // or splash screen
+        return
+    }
+
+    val startDestination = if (isLoggedIn) "main" else "auth"
+    LaunchedEffect(startPlaceId) {
+        if (startPlaceId != null && startPlaceId != -1) {
+            navController.navigate("place_screen?placeId=$startPlaceId")
+        }
+    }
+    NavHost(navController = navController, startDestination =startDestination) {
         navigation(startDestination = Screen.LoginScreen.route, route = "auth") {
             composable(route =Screen.LoginScreen.route) {
                 LoginScreen(navController);
@@ -81,6 +120,28 @@ fun NavigationManager() {
         navigation(startDestination = Screen.HomeScreen.route, route = "main") {
             composable(route =Screen.HomeScreen.route) {
                 HomeScreen(navController)
+            }
+            composable(
+                route = Screen.PlaceScreen.route,
+                arguments = listOf(
+                    navArgument("placeId") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+
+                val placeId = backStackEntry.arguments?.getInt("placeId") ?: 0
+
+                PlaceScreen(navController, placeId)
+            }
+            composable(
+                route = Screen.PostEditScreen.route,
+                arguments = listOf(
+                    navArgument("postId") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+
+                val postId= backStackEntry.arguments?.getInt("postId") ?: 0
+
+                PostCreateScreen(navController, postId)
             }
             composable(
                 route = Screen.ProfileScreen.route,
@@ -102,8 +163,8 @@ fun NavigationManager() {
             composable(route =Screen.MapScreen.route) {
                 MapScreen(navController)
             }
-            composable(route =Screen.PostCreateScreen.route) {
-                PostCreateScreen(navController)
+            composable(route = Screen.PostCreateScreen.route) {
+                PostCreateScreen(navController,0)
             }
             composable(
                 route = Screen.PostScreen.route,
@@ -121,15 +182,6 @@ fun NavigationManager() {
 
         }
     }
-    val context = LocalContext.current
-    val session = SessionManager(context)
 
-    var user by remember { mutableStateOf<User?>(null) }
-    LaunchedEffect(Unit) {
-        user = session.getUser()
-    }
-    if(user!=null && user?.id!=null) {
-        navController.navigate(Screen.HomeScreen.route)
-    }
 
 }

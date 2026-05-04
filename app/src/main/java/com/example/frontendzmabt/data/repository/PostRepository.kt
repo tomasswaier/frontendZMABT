@@ -1,15 +1,22 @@
 package com.example.frontendzmabt.data.repository
 
 
+import android.R
 import com.example.frontendzmabt.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import android.content.Context
 import android.net.Uri
+import android.util.Log
+import androidx.paging.LoadState
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.example.frontendzmabt.data.API
+import com.example.frontendzmabt.data.AppDatabase
 import com.example.frontendzmabt.data.SessionManager
+import com.example.frontendzmabt.data.model.CachedPosts
+import com.example.frontendzmabt.data.model.Post
+import com.example.frontendzmabt.data.model.PostNoUser
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -20,7 +27,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 
-data class PostCreateResponse(
+data class GeneralResponse(
     val error: Boolean,
     val message:String
 )
@@ -37,19 +44,14 @@ data class Meta(
 )
 
 data class GetPostResponse(
-    val post:Post,
+    val post: Post,
     val postImages: List<PostImage>
 )
-
-data class Post(
-    val id: Int,
-    val userId: Int,
-    val placeId: Int,
-    val description: String,
-    val createdAt: String,
-    val updatedAt: String?,
-    val stars: Int
+data class DeletePostResponse(
+    val success: Boolean
 )
+
+
 data class PostImage(
     val id:Int,
     val postId:Int,
@@ -58,34 +60,171 @@ data class PostImage(
     )
 class PostRepository(private val context: Context) {
 
+    //could be done in a better way , who cares
+    private val db = AppDatabase.getInstance(context)
     suspend fun get(id:Int): GetPostResponse?{
         try {
             val session = SessionManager(context);
             val token=session.getToken()
             val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/posts/get?postId=$id"
-            if (token==null|| token=="") {
+            /*if (token==null|| token=="") {
                 return null
-            }
+            }*/
             val result = withContext(Dispatchers.IO) {
-                API.callApi(apiUrl, token, "GET", "")
+                API.callApi(apiUrl, null, "GET", "")
             }
             println(result)
             val gson= Gson()
-            val response= gson.fromJson(result, GetPostResponse::class.java)
+            var response : GetPostResponse?;
+            try {
+                response= gson.fromJson(result, GetPostResponse::class.java)
+            }catch (e: Exception) {
+                e.printStackTrace()
+                return null
+            }
             return response
         } catch (e: Exception) {
             e.printStackTrace()
         }
         return null;
     }
+
+    suspend fun rate(
+        rating: Int,
+        postId:Int
+    ): Boolean {
+        try {
+            val session = SessionManager(context)
+            val token = session.getToken()
+
+            if (token.isNullOrEmpty()) return false
+
+            val url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/posts/rate"
+
+            val requestBody = mapOf(
+                "stars" to rating,
+                "postId" to postId,
+            )
+            if (token==null|| token=="") {
+                return false
+            }
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(url, token, "PUT", requestBody)
+            }
+            //println(result)
+            val gson= Gson()
+            val response= gson.fromJson(result, GeneralResponse::class.java)
+            if (response.error==false) {
+                return true
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return false
+    }
+    fun getCachedPosts(id: Int, placeId: Int, isUser: Boolean): Flow<List<PostNoUser>> {
+        return when {
+            isUser -> db.postDao().getByUser(id)
+            id > 0 -> db.postDao().getByUser(id)
+            placeId > 0 -> db.postDao().getByPlace(placeId)
+            else -> db.postDao().getAll()
+        }
+    }
+
+    suspend fun delete(
+        postId:Int
+    ): Boolean {
+        try {
+            val session = SessionManager(context)
+            val token = session.getToken()
+
+            if (token.isNullOrEmpty()) return false
+            var url="";
+            var method="";
+            url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/posts/delete?postId=$postId"
+            method="DELETE";
+
+            println("url;"+url+" method:"+method+" commendId:"+postId)
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(url, token, method, "")
+            }
+            val gson= Gson()
+            val response= gson.fromJson(result, GeneralResponse::class.java)
+            if (response.error==false) {
+                return true
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return false
+    }
+
+    suspend fun edit(
+        postText: String,
+        rating: Int,
+        longitude: Double,
+        latitude: Double,
+        postId: Int,
+    ): Boolean {
+        try {
+            val session = SessionManager(context)
+            val token = session.getToken()
+            println("sending post to edit")
+
+
+            if (token.isNullOrEmpty()) return false
+
+            val url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/posts/update"
+            val requestBody = mapOf(
+                "postId" to  postId,
+                "postText" to postText,
+                "rating" to rating,
+                "longitude" to longitude,
+                "latitude" to latitude
+            )
+
+            val client = OkHttpClient()
+
+
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(url, token, "PATCH", requestBody)
+            }
+
+            println(result)
+
+            val parsed = Gson().fromJson(result, GeneralResponse::class.java)
+            return !parsed.error
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return false
+    }
     suspend fun create(
         postText: String,
         rating: Int,
         longitude: Double,
         latitude: Double,
-        imageUri: Uri?
+        imageUri: Uri?,
+        online: Boolean
     ): Boolean {
         try {
+            if (!online) {
+                val cachedPost = CachedPosts(
+                    id = -(System.currentTimeMillis().toInt()),
+                    placeId = 0,
+                    description = postText,
+                    createdAt = System.currentTimeMillis().toString(),
+                    updatedAt = null,
+                    stars = rating
+                )
+                db.cachedPostDao().insert(cachedPost)
+                return true
+            }
             val session = SessionManager(context)
             val token = session.getToken()
 
@@ -104,18 +243,19 @@ class PostRepository(private val context: Context) {
 
             if(imageUri!=null){
                 val imageRequestBody = uriToRequestBody(context, imageUri)
-
-                val imagePart = MultipartBody.Part.createFormData(
-                    "image",
-                    "upload.jpg",
-                    imageRequestBody
-                )
-                requestBody
-                    .addFormDataPart(
+                if (imageRequestBody!=null) {
+                    val imagePart = MultipartBody.Part.createFormData(
                         "image",
                         "upload.jpg",
                         imageRequestBody
                     )
+                    requestBody
+                        .addFormDataPart(
+                            "image",
+                            "upload.jpg",
+                            imageRequestBody
+                        )
+                }
             }
             val xd=requestBody.build()
 
@@ -131,10 +271,10 @@ class PostRepository(private val context: Context) {
 
             val responseBody = response.body?.string()
 
-            println(responseBody)
+            //println(responseBody)
 
             val gson = Gson()
-            val parsed = gson.fromJson(responseBody, PostCreateResponse::class.java)
+            val parsed = gson.fromJson(responseBody, GeneralResponse::class.java)
 
             return parsed.error == false
 
@@ -144,16 +284,18 @@ class PostRepository(private val context: Context) {
 
         return false
     }
-    fun getPostsPager(id:Int,isUser:Boolean): Flow<PagingData<Post>> {
+    fun getPostsPager(id:Int,placeId:Int,isUser:Boolean): Flow<PagingData<Post>> {
         return Pager(
             config = PagingConfig(pageSize = 10),
-            pagingSourceFactory = { PostPagingSource(context,id,isUser) }
+            pagingSourceFactory = { PostPagingSource(context,id,placeId,isUser) }
         ).flow
     }
-    fun uriToRequestBody(context: Context, uri: Uri): RequestBody {
-        val inputStream = context.contentResolver.openInputStream(uri)!!
-        val bytes = inputStream.readBytes()
-        return bytes.toRequestBody("image/*".toMediaTypeOrNull())
+    fun uriToRequestBody(context: Context, uri: Uri): RequestBody? {
+        val inputStream = context.contentResolver.openInputStream(uri)
+
+        val bytes = inputStream?.readBytes()
+
+        return bytes?.toRequestBody("image/*".toMediaTypeOrNull())
     }
 }
 
