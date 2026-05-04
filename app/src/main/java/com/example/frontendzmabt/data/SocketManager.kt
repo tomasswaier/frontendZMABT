@@ -16,7 +16,7 @@ object SocketManager {
         options.auth = mapOf("token" to token)
 
 
-        println(token)
+        //println(token)
         socket = IO.socket(BuildConfig.BACKEND_API_URL,options);
         socket.connect()
         println("SocketManager init")

@@ -72,7 +72,7 @@ enum class AppNavigation(var label: String, val route: String, val icon: ImageVe
 
 
 @Composable
-fun NavigationManager() {
+fun NavigationManager(startPlaceId: Int?) {
     val navController = rememberNavController()
     var isLoading by remember { mutableStateOf(true) }
     var isLoggedIn by remember { mutableStateOf(false) }
@@ -90,6 +90,11 @@ fun NavigationManager() {
     }
 
     val startDestination = if (isLoggedIn) "main" else "auth"
+    LaunchedEffect(startPlaceId) {
+        if (startPlaceId != null && startPlaceId != -1) {
+            navController.navigate("place_screen?placeId=$startPlaceId")
+        }
+    }
     NavHost(navController = navController, startDestination =startDestination) {
         navigation(startDestination = Screen.LoginScreen.route, route = "auth") {
             composable(route =Screen.LoginScreen.route) {

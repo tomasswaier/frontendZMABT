@@ -14,7 +14,7 @@ class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        CoroutineScope(Dispatchers.IO).launch {
+       CoroutineScope(Dispatchers.IO).launch {
             try {
                 syncPendingPostsIfLoggedIn()
             } catch (e: Exception) {
@@ -43,10 +43,9 @@ class MyApplication : Application() {
 
             val repo = PostRepository(this@MyApplication)
 
-            println("five")
+
             for (post in pending) {
                 try {
-                    println("six")
                     val success = repo.create(
                         postText = post.description,
                         rating = post.stars,

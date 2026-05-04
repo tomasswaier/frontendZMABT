@@ -28,7 +28,7 @@ class UserRepository(private val context: Context) {
             val token = SessionManager(context).getToken() ?: return null
             val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/account/get?userId=$id"
             val result = withContext(Dispatchers.IO) { API.callApi(url, token, "GET", "") }
-            println(result)
+            //println(result)
             Gson().fromJson(result, GetUserResponse::class.java)
         } catch (e: Exception) { e.printStackTrace(); null }
     }
@@ -38,7 +38,7 @@ class UserRepository(private val context: Context) {
             val token = SessionManager(context).getToken() ?: return null
             val url = "${BuildConfig.BACKEND_API_URL}${BuildConfig.API_VERSION}/account/profile"
             val result = withContext(Dispatchers.IO) { API.callApi(url, token, "GET", "") }
-            println("getOwnProfile response: $result")
+            //println("getOwnProfile response: $result")
             val user = Gson().fromJson(result, User::class.java)
             if (user?.username != null) {
                 GetUserResponse(user = user, isFollowing = false)

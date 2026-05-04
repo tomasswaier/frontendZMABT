@@ -62,17 +62,23 @@ class PostRepository(private val context: Context) {
     suspend fun get(id:Int): GetPostResponse?{
         try {
             val session = SessionManager(context);
-            //val token=session.getToken()
+            val token=session.getToken()
             val apiUrl = BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION+"/posts/get?postId=$id"
-            /*if (token==null|| token=="") {
+            if (token==null|| token=="") {
                 return null
-            }*/
+            }
             val result = withContext(Dispatchers.IO) {
                 API.callApi(apiUrl, null, "GET", "")
             }
             println(result)
             val gson= Gson()
-            val response= gson.fromJson(result, GetPostResponse::class.java)
+            var response : GetPostResponse?;
+            try {
+                response= gson.fromJson(result, GetPostResponse::class.java)
+            }catch (e: Exception) {
+                e.printStackTrace()
+                return null
+            }
             return response
         } catch (e: Exception) {
             e.printStackTrace()
@@ -102,7 +108,7 @@ class PostRepository(private val context: Context) {
             val result = withContext(Dispatchers.IO) {
                 API.callApi(url, token, "PUT", requestBody)
             }
-            println(result)
+            //println(result)
             val gson= Gson()
             val response= gson.fromJson(result, GeneralResponse::class.java)
             if (response.error==false) {
@@ -192,7 +198,7 @@ class PostRepository(private val context: Context) {
 
             val responseBody = response.body?.string()
 
-            println(responseBody)
+            //println(responseBody)
 
             val gson = Gson()
             val parsed = gson.fromJson(responseBody, GeneralResponse::class.java)

@@ -33,7 +33,7 @@ class PlacesRepository(private val context: Context) {
             }
             val gson= Gson()
             val response= gson.fromJson(result, Place::class.java)
-            println(result)
+            //println(result)
             return response
 
         } catch (e: Exception) {
@@ -56,7 +56,7 @@ class PlacesRepository(private val context: Context) {
             val gson= Gson()
             val type = object : com.google.gson.reflect.TypeToken<List<Place>>() {}.type
             val response: List<Place> = gson.fromJson(result, type)
-            println(result)
+            //println(result)
             return response
 
         } catch (e: Exception) {

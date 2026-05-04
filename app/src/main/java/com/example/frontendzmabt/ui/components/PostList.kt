@@ -47,6 +47,7 @@ import com.example.frontendzmabt.data.repository.PostImage
 import com.example.frontendzmabt.data.repository.PostRepository
 import com.example.frontendzmabt.ui.screens.PostNavArgs
 import com.example.frontendzmabt.ui.screens.toRoute
+import com.google.firebase.messaging.FirebaseMessaging
 
 private val CardBg      = Color(0xFFFFFFFF)
 private val CardText    = Color(0xFF37474F)
@@ -71,6 +72,9 @@ fun PostList(
     isUser: Boolean,
     headerContent: (@Composable () -> Unit)? = null
 ) {
+    /*FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+        println("FCM TOKEN: $token")
+    }*/
     val context = LocalContext.current
     val repo = remember { PostRepository(context) }
     val pagerFlow = remember { repo.getPostsPager(id,placeId, isUser) }

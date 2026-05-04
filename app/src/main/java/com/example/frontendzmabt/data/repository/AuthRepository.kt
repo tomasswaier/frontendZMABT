@@ -28,7 +28,7 @@ class AuthRepository(private val context: Context) {
             val gson= Gson()
             val response= gson.fromJson(result,LoginResponse::class.java)
             val session= SessionManager(context);
-            println(response);
+            //println(response);
             session.logout()
 
             return true
@@ -50,19 +50,15 @@ class AuthRepository(private val context: Context) {
                 "username" to username,
                 "password" to password
             )
-            println(apiUrl);
 
             // Make network request on IO thread
             val result = withContext(Dispatchers.IO) {
                 API.callApi(apiUrl, "", "POST", requestBody)
             }
-            println(result)
             val gson= Gson()
             val response= gson.fromJson(result,LoginResponse::class.java)
             val session= SessionManager(context);
-            println(response);
             session.saveToken(
-
                 response.data.token,
                 response.data.user.username,
                 response.data.user.email,
@@ -96,7 +92,7 @@ class AuthRepository(private val context: Context) {
                 API.callApi(apiUrl, "", "POST", requestBody)
             }
 
-            println(result)
+            //println(result)
 
             // Skontroluj či je to JSON objekt, nie string
             if (!result.trimStart().startsWith("{")) {
@@ -109,7 +105,7 @@ class AuthRepository(private val context: Context) {
 
             val gson= Gson()
             val response= gson.fromJson(result,LoginResponse::class.java)
-            println(response)
+            //println(response)
             val session= SessionManager(context);
 
             session.saveToken(

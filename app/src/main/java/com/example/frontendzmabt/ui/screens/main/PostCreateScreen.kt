@@ -92,7 +92,10 @@ fun PostCreateScreen(navController: NavController) {
         scope.launch {
             val repo = PostRepository(context)
             val success = repo.create(postText, rating, longitude, latitude, imageUri,online)
-            if (success) navController.navigate(Screen.UserProfileScreen.route)
+            if (success && !online) {
+                Toast.makeText(context,"Post will be uploaded once you connect to the interner",Toast.LENGTH_LONG).show()
+                navController.navigate(Screen.UserProfileScreen.route)
+            } else if (success) navController.navigate(Screen.UserProfileScreen.route)
             else Toast.makeText(context, "Failed to post content", Toast.LENGTH_LONG).show()
         }
     }
