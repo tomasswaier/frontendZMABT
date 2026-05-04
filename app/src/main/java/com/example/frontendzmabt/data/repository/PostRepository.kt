@@ -47,6 +47,9 @@ data class GetPostResponse(
     val post: Post,
     val postImages: List<PostImage>
 )
+data class DeletePostResponse(
+    val success: Boolean
+)
 
 
 data class PostImage(
@@ -130,6 +133,35 @@ class PostRepository(private val context: Context) {
         }
     }
 
+    suspend fun delete(
+        postId:Int
+    ): Boolean {
+        try {
+            val session = SessionManager(context)
+            val token = session.getToken()
+
+            if (token.isNullOrEmpty()) return false
+            var url="";
+            var method="";
+            url = "${BuildConfig.BACKEND_API_URL+BuildConfig.API_VERSION}/posts/delete?postId=$postId"
+            method="DELETE";
+
+            println("url;"+url+" method:"+method+" commendId:"+postId)
+            val result = withContext(Dispatchers.IO) {
+                API.callApi(url, token, method, "")
+            }
+            val gson= Gson()
+            val response= gson.fromJson(result, GeneralResponse::class.java)
+            if (response.error==false) {
+                return true
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return false
+    }
 
     suspend fun create(
         postText: String,

@@ -3,6 +3,7 @@ package com.example.frontendzmabt.ui.screens.main
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,6 +37,7 @@ import com.example.frontendzmabt.data.repository.CommentRepository
 import com.example.frontendzmabt.data.repository.GetPostResponse
 import com.example.frontendzmabt.data.repository.PostImage
 import com.example.frontendzmabt.data.repository.PostRepository
+import com.example.frontendzmabt.ui.components.ChangeStatus
 import com.example.frontendzmabt.ui.components.CommentList
 import com.example.frontendzmabt.ui.components.RatingPicker
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
@@ -107,6 +109,7 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
                 }
                 Text("MAPA SEM :")
                 if (isUser) {
+                    DeletePostButton(navController,currentPost.id)
                     EditPostButton(navController)
                 }else if(isLoggedIn) {
                     RatingPicker(rating=rating,onRatingChanged = { rating = it;
@@ -195,9 +198,29 @@ fun EditPostButton(navController: NavController) {
     val scope = rememberCoroutineScope()
 
     Button(onClick = {
-        //TODO fix
         navController.navigate(Screen.PostScreen.route)
     }) {
         Text("Edit post")
+    }
+}
+@Composable
+fun DeletePostButton(navController: NavController,postId:Int) {
+    val context = LocalContext.current
+
+    val scope = rememberCoroutineScope()
+    Button(onClick = {
+        //TODO fix
+
+        scope.launch {
+            val repo = PostRepository(context)
+            val success= repo.delete(postId=postId)
+            if (success) {
+                navController.navigate(Screen.UserProfileScreen.route)
+            }else{
+                Toast.makeText(context,"Post couldn't be deleted",Toast.LENGTH_LONG).show()
+            }
+        }
+    }) {
+        Text("delete post")
     }
 }
