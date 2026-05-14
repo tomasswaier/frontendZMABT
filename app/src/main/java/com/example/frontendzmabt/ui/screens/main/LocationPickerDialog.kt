@@ -37,15 +37,20 @@ private val PickerTeal = Color(0xFF00535A)
 
 @Composable
 fun LocationPickerDialog(
+    initialLatitude: Double,
+    initialLongitude: Double,
     onDismiss: () -> Unit,
     onLocationSelected: (Double, Double) -> Unit
-) {
+){
     val defaultPosition = LatLng(48.1486, 17.1077)
 
     var selectedPosition by remember { mutableStateOf<LatLng?>(null) }
 
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(defaultPosition, 10f)
+        position = CameraPosition.fromLatLngZoom(
+            LatLng(initialLatitude, initialLongitude),
+            15f
+        )
     }
     var markers by remember { mutableStateOf<List<Place>?>(null) }
     val context = LocalContext.current
