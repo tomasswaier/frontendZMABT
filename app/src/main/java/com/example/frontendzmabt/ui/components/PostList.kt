@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -44,15 +46,10 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import com.example.frontendzmabt.BuildConfig
 import com.example.frontendzmabt.data.repository.PostImage
-import com.example.frontendzmabt.data.repository.PostRepository
+import com.example.frontendzmabt.data.repository.PostRepositoryInterface
 import com.example.frontendzmabt.ui.screens.PostNavArgs
 import com.example.frontendzmabt.ui.screens.toRoute
-import com.google.firebase.messaging.FirebaseMessaging
 
-private val CardBg      = Color(0xFFFFFFFF)
-private val CardText    = Color(0xFF37474F)
-private val CardName    = Color(0xFF0D2C2E)
-private val CardSubtle  = Color(0xFF78909C)
 
 private val avatarColors = listOf(
     Color(0xFF00695C),
@@ -69,6 +66,7 @@ fun PostList(
     id: Int,
     //To be clear. I know how to do this. I choose not ot do it correctly because It's 3:02 AM and I'm watching banana channel
     placeId: Int,
+    repository: PostRepositoryInterface,
     isUser: Boolean,
     headerContent: (@Composable () -> Unit)? = null
 ) {
@@ -76,17 +74,16 @@ fun PostList(
         println("FCM TOKEN: $token")
     }*/
     val context = LocalContext.current
-    val repo = remember { PostRepository(context) }
-    val pagerFlow = remember { repo.getPostsPager(id,placeId, isUser) }
+    val pagerFlow = remember { repository.getPostsPager(id,placeId, isUser) }
     val lazyPagingItems = pagerFlow.collectAsLazyPagingItems()
-    val cachedPosts by repo.getCachedPosts(id, placeId, isUser)
+    val cachedPosts by repository.getCachedPosts(id, placeId, isUser)
         .collectAsState(initial = emptyList())
 
     val isNetworkError = lazyPagingItems.loadState.refresh is LoadState.Error
     val isOffline = isNetworkError && cachedPosts.isNotEmpty()
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().testTag("post_list"),
         contentPadding = PaddingValues(bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -106,14 +103,14 @@ fun PostList(
                     Text(
                         "Offline – zobrazujú sa uložené dáta",
                         modifier = Modifier.padding(16.dp),
-                        color = CardSubtle
-                    )
+                        color =
+                            MaterialTheme.colorScheme.tertiary                    )
                 }
                 isNetworkError -> {
                     Text(
                         "Offline – pre lepšie fungovanie aplikácie sa pripoj na internet",
                         modifier = Modifier.padding(16.dp),
-                        color = CardSubtle
+                        color = MaterialTheme.colorScheme.tertiary
                     )
                 }
                 else -> {}
@@ -130,7 +127,8 @@ fun PostList(
                     username = null,
                     description = post.description,
                     navController = navController,
-                    isUser = isUser
+                    isUser = isUser,
+                    repository=repository
                 )
             }
         } else {
@@ -144,7 +142,8 @@ fun PostList(
                             username = post.user?.username,
                             description = post.description,
                             navController = navController,
-                            isUser = isUser
+                            isUser = isUser,
+                            repository=repository
                         )
                     }
                 }
@@ -174,13 +173,14 @@ private fun PostCard(
     username: String?,
     description: String,
     navController: NavController,
-    isUser: Boolean
+    isUser: Boolean,
+    repository:PostRepositoryInterface
 ) {
     val context = LocalContext.current
     var images by remember { mutableStateOf<List<PostImage>>(emptyList()) }
 
     LaunchedEffect(postId) {
-        val result = PostRepository(context).get(postId)
+        val result = repository.get(postId)
         images = result?.postImages ?: emptyList()
     }
 
@@ -194,7 +194,7 @@ private fun PostCard(
             .padding(horizontal = 16.dp)
             .clickable { navController.navigate(PostNavArgs(postId, isUser).toRoute()) },
         shape = RoundedCornerShape(16.dp),
-        color = CardBg,
+        color = MaterialTheme.colorScheme.secondary,
         shadowElevation = 2.dp
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -213,7 +213,7 @@ private fun PostCard(
                     displayName,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
-                    color = CardName
+                    color =  MaterialTheme.colorScheme.surface
                 )
             }
 
@@ -223,7 +223,7 @@ private fun PostCard(
             Text(
                 text = description,
                 fontSize = 14.sp,
-                color = CardText,
+                color = MaterialTheme.colorScheme.surface,
                 maxLines = 4,
                 overflow = TextOverflow.Ellipsis,
                 lineHeight = 20.sp

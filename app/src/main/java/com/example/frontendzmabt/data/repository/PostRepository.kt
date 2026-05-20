@@ -1,13 +1,10 @@
 package com.example.frontendzmabt.data.repository
 
 
-import android.R
 import com.example.frontendzmabt.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import android.content.Context
 import android.net.Uri
-import android.util.Log
-import androidx.paging.LoadState
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -58,11 +55,53 @@ data class PostImage(
     val imagePath:String,
 
     )
-class PostRepository(private val context: Context) {
+
+
+interface PostRepositoryInterface {
+
+    fun getPostsPager(
+        id: Int,
+        placeId: Int,
+        isUser: Boolean
+    ): Flow<PagingData<Post>>
+
+    fun getCachedPosts(
+        id: Int,
+        placeId: Int,
+        isUser: Boolean
+    ): Flow<List<PostNoUser>>
+
+    suspend fun get(id: Int): GetPostResponse?
+
+    suspend fun create(
+        postText: String,
+        rating: Int,
+        longitude: Double,
+        latitude: Double,
+        imageUri: Uri?,
+        online: Boolean
+    ): Boolean
+
+    suspend fun edit(
+        postText: String,
+        rating: Int,
+        longitude: Double,
+        latitude: Double,
+        postId: Int
+    ): Boolean
+
+    suspend fun delete(postId: Int): Boolean
+
+    suspend fun rate(
+        rating: Int,
+        postId: Int
+    ): Boolean
+}
+class PostRepository(private val context: Context): PostRepositoryInterface {
 
     //could be done in a better way , who cares
     private val db = AppDatabase.getInstance(context)
-    suspend fun get(id:Int): GetPostResponse?{
+    override suspend fun get(id:Int): GetPostResponse?{
         try {
             val session = SessionManager(context);
             val token=session.getToken()
@@ -89,7 +128,7 @@ class PostRepository(private val context: Context) {
         return null;
     }
 
-    suspend fun rate(
+    override suspend fun rate(
         rating: Int,
         postId:Int
     ): Boolean {
@@ -124,7 +163,7 @@ class PostRepository(private val context: Context) {
 
         return false
     }
-    fun getCachedPosts(id: Int, placeId: Int, isUser: Boolean): Flow<List<PostNoUser>> {
+    override fun getCachedPosts(id: Int, placeId: Int, isUser: Boolean): Flow<List<PostNoUser>> {
         return when {
             isUser -> db.postDao().getByUser(id)
             id > 0 -> db.postDao().getByUser(id)
@@ -133,7 +172,7 @@ class PostRepository(private val context: Context) {
         }
     }
 
-    suspend fun delete(
+    override suspend fun delete(
         postId:Int
     ): Boolean {
         try {
@@ -163,7 +202,7 @@ class PostRepository(private val context: Context) {
         return false
     }
 
-    suspend fun edit(
+    override suspend fun edit(
         postText: String,
         rating: Int,
         longitude: Double,
@@ -204,7 +243,7 @@ class PostRepository(private val context: Context) {
 
         return false
     }
-    suspend fun create(
+    override suspend fun create(
         postText: String,
         rating: Int,
         longitude: Double,
@@ -284,10 +323,10 @@ class PostRepository(private val context: Context) {
 
         return false
     }
-    fun getPostsPager(id:Int,placeId:Int,isUser:Boolean): Flow<PagingData<Post>> {
+    override fun getPostsPager(id:Int,placeId:Int,isUser:Boolean): Flow<PagingData<Post>> {
         return Pager(
             config = PagingConfig(pageSize = 10),
-            pagingSourceFactory = { PostPagingSource(context,id,placeId,isUser) }
+            pagingSourceFactory = { PostPagingSource(context, id, placeId, isUser) }
         ).flow
     }
     fun uriToRequestBody(context: Context, uri: Uri): RequestBody? {

@@ -1,26 +1,28 @@
 package com.example.frontendzmabt
 
 import android.content.Context
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.datastore.preferences.core.edit
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.dataStore
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertFalse
-import junit.framework.TestCase.assertNull
-import junit.framework.TestCase.assertTrue
+import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import org.junit.*
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
-
 
 @RunWith(AndroidJUnit4::class)
 class SessionManagerTest {
 
+
     private lateinit var context: Context
     private lateinit var sessionManager: SessionManager
+    @get:Rule
+    val composeTestRule = createComposeRule()
 
     @Before
     fun setup() {
@@ -38,14 +40,14 @@ class SessionManagerTest {
 
         val token = sessionManager.getToken()
 
-        assertEquals("abc123", token)
+        TestCase.assertEquals("abc123", token)
     }
 
     @Test
     fun getToken_withoutSaving_returnsNull() = runTest {
         val token = sessionManager.getToken()
 
-        assertNull(token)
+        TestCase.assertNull(token)
     }
 
     @Test
@@ -54,18 +56,18 @@ class SessionManagerTest {
 
         val user = sessionManager.getUser()
 
-        assertEquals(5, user.id)
-        assertEquals("john", user.username)
-        assertEquals("john@mail.com", user.email)
+        TestCase.assertEquals(5, user.id)
+        TestCase.assertEquals("john", user.username)
+        TestCase.assertEquals("john@mail.com", user.email)
     }
 
     @Test
     fun getUser_withoutData_returnsNullFields() = runTest {
         val user = sessionManager.getUser()
 
-        assertNull(user.id)
-        assertNull(user.username)
-        assertNull(user.email)
+        TestCase.assertNull(user.id)
+        TestCase.assertNull(user.username)
+        TestCase.assertNull(user.email)
     }
 
     @Test
@@ -74,14 +76,14 @@ class SessionManagerTest {
 
         val result = sessionManager.isLoggedIn()
 
-        assertTrue(result)
+        TestCase.assertTrue(result)
     }
 
     @Test
     fun isLoggedIn_returnsFalse_whenNoToken() = runTest {
         val result = sessionManager.isLoggedIn()
 
-        assertFalse(result)
+        TestCase.assertFalse(result)
     }
 
     @Test
@@ -92,7 +94,7 @@ class SessionManagerTest {
 
         val token = sessionManager.getToken()
 
-        assertNull(token)
+        TestCase.assertNull(token)
     }
 
     @Test
@@ -103,8 +105,8 @@ class SessionManagerTest {
 
         val user = sessionManager.getUser()
 
-        assertNull(user.id)
-        assertNull(user.username)
-        assertNull(user.email)
+        TestCase.assertNull(user.id)
+        TestCase.assertNull(user.username)
+        TestCase.assertNull(user.email)
     }
 }

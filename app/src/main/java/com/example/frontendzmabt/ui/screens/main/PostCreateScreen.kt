@@ -66,14 +66,10 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.frontendzmabt.data.API
-import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.model.Post
 import com.example.frontendzmabt.data.model.WeatherResponse
-import com.example.frontendzmabt.data.repository.CommentRepository
 import com.example.frontendzmabt.data.repository.GetPostResponse
-import com.example.frontendzmabt.data.repository.PlacesRepository
 import com.example.frontendzmabt.data.repository.PostRepository
-import com.example.frontendzmabt.ui.components.ChangeStatus
 import com.example.frontendzmabt.ui.components.RatingPicker
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 import com.example.frontendzmabt.ui.screens.Screen

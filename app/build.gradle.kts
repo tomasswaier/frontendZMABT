@@ -101,4 +101,10 @@ dependencies {
     //implementation(libs.google.firebase.analytics)
     implementation(libs.firebase.crashlytics)
     implementation(libs.play.services.location)
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.test.manifest)
+
+    androidTestImplementation(libs.androidx.junit.v130)
+    androidTestImplementation(libs.androidx.runner)
+    androidTestImplementation(libs.androidx.navigation.testing)
 }

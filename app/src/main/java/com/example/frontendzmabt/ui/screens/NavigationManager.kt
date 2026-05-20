@@ -18,6 +18,10 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.composable
+import androidx.navigation.navigation
 import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.model.User
 import com.example.frontendzmabt.ui.screens.auth.LoginScreen
@@ -102,6 +106,14 @@ fun NavigationManager(startPlaceId: Int?) {
             navController.navigate("place_screen?placeId=$startPlaceId")
         }
     }
+
+    GetNavHost(navController,startDestination)
+
+}
+
+@Composable
+fun GetNavHost(navController: NavHostController,startDestination: String){
+
     NavHost(navController = navController, startDestination =startDestination) {
         navigation(startDestination = Screen.LoginScreen.route, route = "auth") {
             composable(route =Screen.LoginScreen.route) {
@@ -157,7 +169,7 @@ fun NavigationManager(startPlaceId: Int?) {
             composable(
                 route = Screen.UserProfileScreen.route,
             ) {
-                    ProfileScreen(navController, 0,true)
+                ProfileScreen(navController, 0,true)
 
             }
             composable(route =Screen.MapScreen.route) {
@@ -182,6 +194,4 @@ fun NavigationManager(startPlaceId: Int?) {
 
         }
     }
-
-
 }

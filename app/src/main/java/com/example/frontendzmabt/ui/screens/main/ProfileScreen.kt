@@ -63,12 +63,13 @@ import com.example.frontendzmabt.ui.theme.ThemeManager
 import kotlinx.coroutines.launch
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-
+import com.example.frontendzmabt.data.repository.PostRepository
 
 
 @Composable
 fun ProfileScreen(navController: NavController, id: Int, isUserIn: Boolean) {
     val context = LocalContext.current
+    val repository= remember{PostRepository(context)}
     val scope = rememberCoroutineScope()
     var userResponse by remember { mutableStateOf<GetUserResponse?>(null) }
     //can be changed later
@@ -101,6 +102,7 @@ fun ProfileScreen(navController: NavController, id: Int, isUserIn: Boolean) {
                     navController = navController,
                     id =  id,
                     placeId=0,
+                    repository,
                     isUser = isUser,
                     headerContent = {
                         ProfileHeaderContent(

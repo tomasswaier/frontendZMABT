@@ -1,7 +1,6 @@
 package com.example.frontendzmabt.ui.screens.main
 
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -30,14 +29,11 @@ import coil.compose.AsyncImage
 import com.example.frontendzmabt.BuildConfig
 import com.example.frontendzmabt.R
 import com.example.frontendzmabt.data.SessionManager
-import com.example.frontendzmabt.data.SocketManager
-import com.example.frontendzmabt.data.repository.Comment
 import com.example.frontendzmabt.data.model.Post
 import com.example.frontendzmabt.data.repository.CommentRepository
 import com.example.frontendzmabt.data.repository.GetPostResponse
 import com.example.frontendzmabt.data.repository.PostImage
 import com.example.frontendzmabt.data.repository.PostRepository
-import com.example.frontendzmabt.ui.components.ChangeStatus
 import com.example.frontendzmabt.ui.components.CommentList
 import com.example.frontendzmabt.ui.components.RatingPicker
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
@@ -45,9 +41,7 @@ import com.example.frontendzmabt.ui.screens.EditPostNavArgs
 import com.example.frontendzmabt.ui.screens.Screen
 import com.example.frontendzmabt.ui.screens.ProfileNavArgs
 import com.example.frontendzmabt.ui.screens.toRoute
-import com.google.gson.Gson
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 
 @Composable
 fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
@@ -60,6 +54,7 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
     var post by remember { mutableStateOf<Post?>(null) }
     var images  by remember { mutableStateOf<List<PostImage>?>(null) }
     var isLoggedIn by remember { mutableStateOf(false) }
+    val commentRepo = remember { CommentRepository(context) }
     LaunchedEffect(Unit) {
         if(SessionManager(context).getToken()!=null) {
             isLoggedIn=true
@@ -96,7 +91,7 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_account_box),
-                            contentDescription = "",
+                            contentDescription = "Open profile",
                             tint = Color.Green,
 
                             )
@@ -124,7 +119,7 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
                     CommentForm(id)
 
                 }
-                CommentList(navController, id)
+                CommentList(navController, id,commentRepo)
             }
 
 

@@ -31,18 +31,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.frontendzmabt.data.SessionManager
+import com.example.frontendzmabt.data.repository.PostRepository
 import com.example.frontendzmabt.ui.components.PostList
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 
 
 @Composable
 fun HomeScreen(navController: NavController) {
+    val context = LocalContext.current
+    val repo= remember{PostRepository(context)}
     AppScreenTemplate(
         navController = navController,
         header = { HomeHeader() },
         content = {
             Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-                PostList(navController, 0, 0,false)
+                PostList(navController, 0, 0,repo,false,)
             }
         }
     )

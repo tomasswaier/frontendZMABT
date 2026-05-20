@@ -12,7 +12,6 @@ import com.example.frontendzmabt.data.API
 import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.SocketManager
 import com.google.gson.Gson
-import io.socket.client.IO.socket
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
@@ -26,15 +25,28 @@ data class Comment(
     val likeCount: Int,
     val isLiked: Boolean?,
 
+
 )
-class CommentRepository(private val context: Context) {
-    fun getCommentPager(id:Int): Flow<PagingData<Comment>> {
+interface CommentRepositoryInterface {
+
+    fun getCommentPager(id: Int): Flow<PagingData<Comment>>
+
+    fun create(commentText: String, postId: Int): Boolean
+
+    suspend fun ChangeLikeStatus(
+        context: Context,
+        action: Boolean,
+        commentId: Int
+    ): Boolean
+}
+class CommentRepository(private val context: Context): CommentRepositoryInterface {
+    override fun getCommentPager(id:Int): Flow<PagingData<Comment>> {
         return Pager(
             config = PagingConfig(pageSize = 10),
             pagingSourceFactory = { CommentPagingSource(context,id) }
         ).flow
     }
-    fun create(commentText:String,postId:Int):Boolean{
+    override fun create(commentText:String,postId:Int):Boolean{
         try {
             //val session = SessionManager(context);
             SocketManager.sendComment(postId = postId,commentText=commentText);
@@ -43,7 +55,7 @@ class CommentRepository(private val context: Context) {
         }
         return false;
     }
-    suspend fun ChangeLikeStatus(context:Context,action:Boolean,commentId:Int):Boolean{
+    override suspend fun ChangeLikeStatus(context:Context,action:Boolean,commentId:Int):Boolean{
         try {
             val session = SessionManager(context)
             val token = session.getToken()

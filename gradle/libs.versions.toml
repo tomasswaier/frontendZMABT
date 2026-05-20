@@ -1,6 +1,7 @@
 [versions]
 firebaseBom="34.12.0"
 firebaseMessaging="25.0.1"
+navigationTesting="2.9.8"
 playServicesLocation="21.3.0"
 room="2.7.1"
 agp = "8.9.1"
@@ -48,9 +49,12 @@ androidx-espresso-core-v370 = { module = "androidx.test.espresso:espresso-core",
 androidx-junit-v130 = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }
 androidx-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+androidx-navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navigationTesting" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pagingCompose" }
 androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "pagingCompose" }
 androidx-runner = { module = "androidx.test:runner", version.ref = "runner" }
+androidx-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }

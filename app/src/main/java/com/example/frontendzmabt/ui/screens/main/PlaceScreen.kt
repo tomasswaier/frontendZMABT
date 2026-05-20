@@ -1,5 +1,4 @@
 package com.example.frontendzmabt.ui.screens.main
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +35,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,24 +45,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.model.User
-import com.example.frontendzmabt.data.repository.AuthRepository
-import com.example.frontendzmabt.data.repository.GetUserResponse
 import com.example.frontendzmabt.data.repository.Place
 import com.example.frontendzmabt.data.repository.PlacesRepository
 import com.example.frontendzmabt.data.repository.PostRepository
-import com.example.frontendzmabt.data.repository.UserRepository
 import com.example.frontendzmabt.ui.components.PostList
 import com.example.frontendzmabt.ui.screens.AppScreenTemplate
 import com.example.frontendzmabt.ui.screens.Screen
 import com.example.frontendzmabt.ui.theme.ThemeManager
-import kotlinx.coroutines.launch
 
 
 @Composable
 fun PlaceScreen(navController: NavController, id: Int) {
     val context = LocalContext.current
+    val repo= remember{PostRepository(context)}
     var place by remember { mutableStateOf<Place?>(null) }
 
     LaunchedEffect(Unit) {
@@ -87,6 +81,7 @@ fun PlaceScreen(navController: NavController, id: Int) {
                     navController = navController,
                     id = 0,
                     placeId = id,
+                    repo,
                     isUser = false,
                     headerContent = {
                         Text(place?.aiDescription ?: "Loading...")

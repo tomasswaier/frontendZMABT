@@ -17,7 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -25,7 +27,7 @@ import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.SocketManager
 import com.example.frontendzmabt.data.repository.Comment
 import com.example.frontendzmabt.data.repository.CommentRepository
-import com.example.frontendzmabt.data.repository.UserRepository
+import com.example.frontendzmabt.data.repository.CommentRepositoryInterface
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -33,11 +35,13 @@ import kotlin.jvm.java
 
 
 @Composable
-fun CommentList(navController: NavController,id: Int) {
+fun CommentList(
+    navController: NavController,id: Int,
+    repo: CommentRepositoryInterface,
+
+) {
 
     val context = LocalContext.current
-    val repo = remember { CommentRepository(context) }
-
     val scope = rememberCoroutineScope()
     val pagerFlow = remember { repo.getCommentPager(id) }
     val lazyPagingItems = pagerFlow.collectAsLazyPagingItems()
@@ -92,11 +96,14 @@ fun CommentList(navController: NavController,id: Int) {
                     }
                 }
                 if (comment!=null ) {
-                    Row() {
+                    Row(
+                        modifier= Modifier.testTag("comment_content"),
+                    ) {
                         Text(comment.content)
                         if (isLoggedIn) {
                             ChangeStatusBoolean(
                                 Icons.Default.ThumbUp, Icons.Default.ThumbUpOffAlt, isLiked,
+                                modifier= Modifier.testTag("like_button"),
                                 onClick = {
                                     scope.launch {
                                         ChangeStatus(
