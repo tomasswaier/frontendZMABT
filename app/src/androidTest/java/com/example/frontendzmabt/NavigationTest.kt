@@ -190,4 +190,47 @@ class NavigationTest {
             )
         }
     }
+
+    @Test
+    fun repeated_navigation_clicks_test() {
+
+        composeTestRule.setContent {
+            GetNavHost(navController, "main")
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription("PROFILE")
+            .performClick()
+
+        composeTestRule
+            .onNodeWithContentDescription("FEED")
+            .performClick()
+        composeTestRule
+            .onNodeWithContentDescription("MAP")
+            .performClick()
+        composeTestRule
+            .onNodeWithContentDescription("FEED")
+            .performClick()
+        composeTestRule
+            .onNodeWithContentDescription("MAP")
+            .performClick()
+        composeTestRule
+            .onNodeWithContentDescription("FEED")
+            .performClick()
+        composeTestRule
+            .onNodeWithContentDescription("MAP")
+            .performClick()
+        composeTestRule
+            .onNodeWithContentDescription("PROFILE")
+            .performClick()
+        composeTestRule
+            .onNodeWithContentDescription("MAP")
+            .performClick()
+        composeTestRule.runOnIdle {
+            assertEquals(
+                "map_screen",
+                navController.currentDestination?.route
+            )
+        }
+    }
 }

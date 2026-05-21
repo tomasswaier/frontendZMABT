@@ -74,12 +74,32 @@ class PostScreenTest {
     @Test
     fun pfp_click_redirects_to_user_profile() {
 
+        val commentRepo = TestCommentRepository()
         composeTestRule.setContent {
             GetNavHost(navController,"main")
-        }
-        composeTestRule.runOnUiThread {
-            navController.navigate(
-                "post_screen?postId=1&isUser=false"
+            PostScreenContent(
+                navController = navController,
+                id = 1,
+                isUser = false,
+                isLoggedIn = false,
+                post = Post(
+                    id = 1,
+                    userId = 1,
+                    placeId = 1,
+                    description = "Test text",
+                    createdAt = "1.2.2000",
+                    updatedAt = "1.2.2000",
+                    stars = 3,
+                    user = PostUser(
+                        id = 1,
+                        username = "testUsername",
+                    )
+                ),
+                images = null,
+                rating = 3,
+                commentRepo = commentRepo,
+                onRatingChanged = {
+                }
             )
         }
 
@@ -99,13 +119,32 @@ class PostScreenTest {
     @Test
     fun post_user_id_displayed_correctly() {
 
+        val commentRepo = TestCommentRepository()
         composeTestRule.setContent {
             GetNavHost(navController,"main")
-        }
-
-        composeTestRule.runOnUiThread {
-            navController.navigate(
-                "post_screen?postId=1&isUser=false"
+            PostScreenContent(
+                navController = navController,
+                id = 1,
+                isUser = false,
+                isLoggedIn = false,
+                post = Post(
+                    id = 1,
+                    userId = 1,
+                    placeId = 1,
+                    description = "Test text",
+                    createdAt = "1.2.2000",
+                    updatedAt = "1.2.2000",
+                    stars = 3,
+                    user = PostUser(
+                        id = 1,
+                        username = "testUsername",
+                    )
+                ),
+                images = null,
+                rating = 3,
+                commentRepo = commentRepo,
+                onRatingChanged = {
+                }
             )
         }
 
@@ -117,15 +156,35 @@ class PostScreenTest {
     @Test
     fun post_description_displayed_correctly() {
 
+        val commentRepo = TestCommentRepository()
         composeTestRule.setContent {
             GetNavHost(navController,"main")
-        }
-
-        composeTestRule.runOnUiThread {
-            navController.navigate(
-                "post_screen?postId=1&isUser=false"
+            PostScreenContent(
+                navController = navController,
+                id = 1,
+                isUser = false,
+                isLoggedIn = false,
+                post = Post(
+                    id = 1,
+                    userId = 1,
+                    placeId = 1,
+                    description = "Test text",
+                    createdAt = "1.2.2000",
+                    updatedAt = "1.2.2000",
+                    stars = 3,
+                    user = PostUser(
+                        id = 1,
+                        username = "testUsername",
+                    )
+                ),
+                images = null,
+                rating = 3,
+                commentRepo = commentRepo,
+                onRatingChanged = {
+                }
             )
         }
+
 
         composeTestRule
             .onNodeWithText("userId:1")
@@ -135,13 +194,32 @@ class PostScreenTest {
     @Test
     fun map_label_displayed_correctly() {
 
+        val commentRepo = TestCommentRepository()
         composeTestRule.setContent {
             GetNavHost(navController,"main")
-        }
-
-        composeTestRule.runOnUiThread {
-            navController.navigate(
-                "post_screen?postId=1&isUser=false"
+            PostScreenContent(
+                navController = navController,
+                id = 1,
+                isUser = false,
+                isLoggedIn = false,
+                post = Post(
+                    id = 1,
+                    userId = 1,
+                    placeId = 1,
+                    description = "Test text",
+                    createdAt = "1.2.2000",
+                    updatedAt = "1.2.2000",
+                    stars = 3,
+                    user = PostUser(
+                        id = 1,
+                        username = "testUsername",
+                    )
+                ),
+                images = null,
+                rating = 3,
+                commentRepo = commentRepo,
+                onRatingChanged = {
+                }
             )
         }
 
@@ -153,13 +231,32 @@ class PostScreenTest {
     @Test
     fun open_profile_button_displayed() {
 
+        val commentRepo = TestCommentRepository()
         composeTestRule.setContent {
             GetNavHost(navController,"main")
-        }
-
-        composeTestRule.runOnUiThread {
-            navController.navigate(
-                "post_screen?postId=1&isUser=false"
+            PostScreenContent(
+                navController = navController,
+                id = 1,
+                isUser = false,
+                isLoggedIn = false,
+                post = Post(
+                    id = 1,
+                    userId = 1,
+                    placeId = 1,
+                    description = "Test text",
+                    createdAt = "1.2.2000",
+                    updatedAt = "1.2.2000",
+                    stars = 3,
+                    user = PostUser(
+                        id = 1,
+                        username = "testUsername",
+                    )
+                ),
+                images = null,
+                rating = 3,
+                commentRepo = commentRepo,
+                onRatingChanged = {
+                }
             )
         }
 
