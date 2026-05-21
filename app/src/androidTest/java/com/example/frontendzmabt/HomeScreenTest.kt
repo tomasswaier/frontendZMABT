@@ -13,12 +13,15 @@ import junit.framework.TestCase.assertEquals
 import com.example.frontendzmabt.data.repository.testRepository.TestPostRepository
 import com.example.frontendzmabt.ui.screens.test.TestGetNavHost
 import android.content.Context
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
+import com.example.frontendzmabt.data.repository.testRepository.TestOfflinePostRepository
 import com.example.frontendzmabt.ui.screens.Screen
 import com.example.frontendzmabt.ui.screens.main.PostScreen
 import org.junit.Before
@@ -106,6 +109,7 @@ class HomeScreenTest {
             .assertIsDisplayed()
 
     }
+
     @Test
     fun loads_1000_posts() {
 
@@ -129,6 +133,84 @@ class HomeScreenTest {
         composeTestRule
             .onNodeWithText("Post 999")
             .assertExists()
+    }
+    @Test
+    fun offline_message_is_displayed() {
+
+        val repo = TestOfflinePostRepository()
+
+        composeTestRule.setContent {
+            PostList(
+                navController = navController,
+                repository = repo,
+                id = 1,
+                placeId = 1,
+                isUser = false
+            )
+        }
+
+        composeTestRule
+            .onNodeWithText(
+                "Offline – zobrazujú sa uložené dáta"
+            )
+            .assertIsDisplayed()
+
+
+
+        composeTestRule
+            .onNodeWithText("Cached post 1")
+            .assertIsDisplayed()
+    }
+    @Test
+    fun offline_post_1000_is_displayed() {
+
+        val repo = TestOfflinePostRepository()
+
+        composeTestRule.setContent {
+            PostList(
+                navController = navController,
+                repository = repo,
+                id = 1,
+                placeId = 1,
+                isUser = false
+            )
+        }
+
+        composeTestRule
+            .onNodeWithText(
+                "Offline – zobrazujú sa uložené dáta"
+            )
+            .assertIsDisplayed()
+
+        composeTestRule
+            .onNodeWithTag("post_list")
+            .performScrollToNode(
+                hasText("Cached post 999")
+            )
+
+
+        composeTestRule
+            .onNodeWithText("Cached post 999")
+            .assertIsDisplayed()
+    }
+    @Test
+    fun posts_are_not_duplicated() {
+
+        val repo = TestPostRepository()
+
+        composeTestRule.setContent {
+            PostList(
+                navController = navController,
+                repository = repo,
+                id = 1,
+                placeId = 1,
+                isUser = false
+            )
+        }
+
+        composeTestRule
+            .onAllNodesWithText("Post 1")
+            .assertCountEquals(1)
     }
 
 }

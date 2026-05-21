@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -31,6 +32,7 @@ import com.example.frontendzmabt.R
 import com.example.frontendzmabt.data.SessionManager
 import com.example.frontendzmabt.data.model.Post
 import com.example.frontendzmabt.data.repository.CommentRepository
+import com.example.frontendzmabt.data.repository.CommentRepositoryInterface
 import com.example.frontendzmabt.data.repository.GetPostResponse
 import com.example.frontendzmabt.data.repository.PostImage
 import com.example.frontendzmabt.data.repository.PostRepository
@@ -44,7 +46,7 @@ import com.example.frontendzmabt.ui.screens.toRoute
 import kotlinx.coroutines.launch
 
 @Composable
-fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
+fun PostScreen(navController: NavController, id: Int, isUser: Boolean) {
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -52,81 +54,108 @@ fun PostScreen(navController: NavController, id: Int,isUser:Boolean) {
     var rating by remember { mutableStateOf(0) }
     var response by remember { mutableStateOf<GetPostResponse?>(null) }
     var post by remember { mutableStateOf<Post?>(null) }
-    var images  by remember { mutableStateOf<List<PostImage>?>(null) }
+    var images by remember { mutableStateOf<List<PostImage>?>(null) }
     var isLoggedIn by remember { mutableStateOf(false) }
     val commentRepo = remember { CommentRepository(context) }
+
     LaunchedEffect(Unit) {
-        if(SessionManager(context).getToken()!=null) {
-            isLoggedIn=true
+        if (SessionManager(context).getToken() != null) {
+            isLoggedIn = true
         }
     }
     LaunchedEffect(Unit) {
         val repo = PostRepository(context)
         println(id)
         response = repo.get(id)
-        if(response!=null) {
+        if (response != null) {
             post = response?.post
-            images=response?.postImages
+            images = response?.postImages
         }
     }
-    AppScreenTemplate(
-        navController=navController,header= {},
-        content={Column(modifier = Modifier.background(
-            color =Color.Gray
-        ).fillMaxSize()
 
-        ) {
-            //PostList(id,isUser)
-            var currentPost=post
-            if (currentPost==null){
-                Text("Failed to load post")
-            }else {
-                Row {
-                    IconButton(
-                        onClick = {
-                                navController.navigate(ProfileNavArgs(currentPost.userId).toRoute()) {
-                                    launchSingleTop = true
-                                }
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_account_box),
-                            contentDescription = "Open profile",
-                            tint = Color.Green,
-
-                            )
-                    }
-                    Text("userId:" + currentPost.userId)
-                }
-                Text("userId:" + currentPost.description)
-
-                images?.takeIf { it.isNotEmpty() }?.let {
-                    PostImages(it)
-                }
-                Text("MAPA SEM :")
-                if (isUser) {
-                    DeletePostButton(navController,currentPost.id)
-                    EditPostButton(navController,currentPost.id)
-                }else if(isLoggedIn) {
-                    RatingPicker(rating=rating,onRatingChanged = { rating = it;
-
-                        scope.launch {
-                            val success = ChangeRating(context, rating=rating,postId=id)
-                            println("Rating changed: $success")
-                        }
-
-                    })
-                    CommentForm(id)
-
-                }
-                CommentList(navController, id,commentRepo)
+    PostScreenContent(
+        navController = navController,
+        id = id,
+        isUser = isUser,
+        isLoggedIn = isLoggedIn,
+        post = post,
+        images = images,
+        rating = rating,
+        commentRepo = commentRepo,
+        onRatingChanged = { newRating ->
+            rating = newRating
+            scope.launch {
+                val success = ChangeRating(context, rating = newRating, postId = id)
+                println("Rating changed: $success")
             }
-
-
-
-        }}
+        }
     )
 }
+
+@Composable
+fun PostScreenContent(
+    navController: NavController,
+    id: Int,
+    isUser: Boolean,
+    isLoggedIn: Boolean,
+    post: Post?,
+    images: List<PostImage>?,
+    rating: Int,
+    commentRepo: CommentRepositoryInterface,
+    onRatingChanged: (Int) -> Unit
+) {
+    AppScreenTemplate(
+        navController = navController,
+        header = {},
+        content = {
+            Column(
+                modifier = Modifier
+                    .background(color = Color.Gray)
+                    .fillMaxSize()
+            ) {
+                if (post == null) {
+                    Text("Failed to load post")
+                } else {
+                    Row {
+                        IconButton(
+                            onClick = {
+                                navController.navigate(ProfileNavArgs(post.userId).toRoute()) {
+                                    launchSingleTop = true
+                                }
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_account_box),
+                                contentDescription = "Open profile",
+                                tint = Color.Green,
+                            )
+                        }
+                        Text("userId:" + post.userId)
+                    }
+                    Text("userId:" + post.description)
+
+                    images?.takeIf { it.isNotEmpty() }?.let {
+                        PostImages(it)
+                    }
+                    Text("MAPA SEM :")
+                    if (isUser) {
+                        DeletePostButton(navController, post.id)
+                        EditPostButton(navController, post.id)
+                    } else if (isLoggedIn) {
+                        RatingPicker(
+                            rating = rating,
+                            onRatingChanged = onRatingChanged
+                        )
+                        CommentForm(id)
+                    }
+                    CommentList(navController, id, commentRepo)
+                }
+            }
+        }
+    )
+}
+
+
 suspend fun ChangeRating(context: Context, rating: Int,postId:Int): Boolean {
     val repo = PostRepository(context)
     return repo.rate(rating,postId)
@@ -194,10 +223,9 @@ fun CommentForm(postId :Int){
 
 @Composable
 fun EditPostButton(navController: NavController,postId:Int) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-
-    Button(onClick = {
+    Button(
+        modifier = Modifier.testTag("edit_button"),
+        onClick = {
         navController.navigate(
             EditPostNavArgs(postId).toRoute()
         )
@@ -210,7 +238,9 @@ fun DeletePostButton(navController: NavController,postId:Int) {
     val context = LocalContext.current
 
     val scope = rememberCoroutineScope()
-    Button(onClick = {
+    Button(
+        modifier = Modifier.testTag("delete_button"),
+        onClick = {
         //TODO fix
 
         scope.launch {

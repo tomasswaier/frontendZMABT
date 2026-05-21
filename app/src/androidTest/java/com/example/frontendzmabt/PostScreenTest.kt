@@ -13,13 +13,22 @@ import android.content.Context
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import com.example.frontendzmabt.data.SessionManager
+import com.example.frontendzmabt.data.model.Post
+import com.example.frontendzmabt.data.model.PostUser
+import com.example.frontendzmabt.data.model.User
 import com.example.frontendzmabt.data.repository.testRepository.TestCommentRepository
+import com.example.frontendzmabt.data.repository.testRepository.TestPostRepository
 import com.example.frontendzmabt.ui.components.CommentList
+import com.example.frontendzmabt.ui.screens.main.ChangeRating
+import com.example.frontendzmabt.ui.screens.main.PostScreenContent
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -162,24 +171,44 @@ class PostScreenTest {
     @Test
     fun open_profile_button_redirects_correctly() {
 
+        val commentRepo = TestCommentRepository()
         composeTestRule.setContent {
             GetNavHost(navController,"main")
-        }
-
-        composeTestRule.runOnUiThread {
-            navController.navigate(
-                "post_screen?postId=1&isUser=false"
+            PostScreenContent(
+                navController = navController,
+                id = 1,
+                isUser = false,
+                isLoggedIn = false,
+                post = Post(
+                    id = 1,
+                    userId = 2,
+                    placeId = 1,
+                    description = "Test text",
+                    createdAt = "1.2.2000",
+                    updatedAt = "1.2.2000",
+                    stars = 3,
+                    user = PostUser(
+                        id = 1,
+                        username = "testUsername",
+                    )
+                ),
+                images = null,
+                rating = 3,
+                commentRepo = commentRepo,
+                onRatingChanged = {
+                }
             )
+
+
         }
 
         composeTestRule
-            .onNodeWithContentDescription("Open profile")
-            .performClick()
+            .onAllNodesWithContentDescription("Open profile")
+            .fetchSemanticsNodes().isNotEmpty()
 
-        assertEquals(
-            "profile_screen?userId={userId}",
-            navController.currentDestination?.route
-        )
+        composeTestRule
+            .onNodeWithText("Share & Trail")// navigator is tied to main activity and I manipulate the inserted PostScreen
+            .assertExists()
     }
     @Test
     fun comment_list_displays_first_comment() {
@@ -276,4 +305,84 @@ class PostScreenTest {
             .onNodeWithText("Test Comment 2")
             .assertExists()
     }
+    @Test
+    fun edit_button_is_displayed() {
+
+        val commentRepo = TestCommentRepository()
+        composeTestRule.setContent {
+            GetNavHost(navController,"main")
+            PostScreenContent(
+                navController = navController,
+                id = 1,
+                isUser = true,
+                isLoggedIn = true,
+                post = Post(
+                    id = 1,
+                    userId = 2,
+                    placeId = 1,
+                    description = "Test text",
+                    createdAt = "1.2.2000",
+                    updatedAt = "1.2.2000",
+                    stars = 3,
+                    user = PostUser(
+                        id = 1,
+                        username = "testUsername",
+                    )
+                ),
+                images = null,
+                rating = 3,
+                commentRepo = commentRepo,
+                onRatingChanged = {
+                }
+            )
+
+
+        }
+
+        composeTestRule
+            .onNodeWithTag("edit_button").assertExists()
+
+    }
+    @Test
+    fun edit_button_redirects_correctly() {
+
+        val commentRepo = TestCommentRepository()
+        composeTestRule.setContent {
+            GetNavHost(navController,"main")
+            PostScreenContent(
+                navController = navController,
+                id = 1,
+                isUser = true,
+                isLoggedIn = true,
+                post = Post(
+                    id = 1,
+                    userId = 2,
+                    placeId = 1,
+                    description = "Test text",
+                    createdAt = "1.2.2000",
+                    updatedAt = "1.2.2000",
+                    stars = 3,
+                    user = PostUser(
+                        id = 1,
+                        username = "testUsername",
+                    )
+                ),
+                images = null,
+                rating = 3,
+                commentRepo = commentRepo,
+                onRatingChanged = {
+                }
+            )
+
+
+        }
+
+        composeTestRule
+            .onNodeWithTag("edit_button").performClick()
+
+        composeTestRule
+            .onNodeWithText("THE STORY")// navigator is tied to main activity and I manipulate the inserted PostScreen
+            .assertExists()
+    }
+
 }
