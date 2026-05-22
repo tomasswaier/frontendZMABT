@@ -144,7 +144,8 @@ fun PostCreateScreen(
         onPostTextChange = { postText = it },
         onRatingChange = { rating = it },
         onImageChange = { imageUri = it },
-        onSubmit = onSubmit
+        onSubmit = onSubmit,
+        context=context
     )
 }
 @Composable
@@ -158,12 +159,13 @@ fun PostCreateScreenContent(
     latitude: Double,
     longitude: Double,
     online: Boolean,
-
+    context:Context,
     onPostTextChange: (String) -> Unit,
     onRatingChange: (Int) -> Unit,
     onImageChange: (Uri?) -> Unit,
     onSubmit: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
 
     AppScreenTemplate(
         navController = navController,
@@ -212,7 +214,16 @@ fun PostCreateScreenContent(
                             )
 
                             Button(onClick = {
-                                // still UI action
+
+                                scope.launch {
+                                    onPostTextChange(
+                                        postText + addWeather(
+                                            context = context,
+                                            longitude = longitude,
+                                            latitude = latitude
+                                        )
+                                    )
+                                }
                             }) {
                                 Text("Add Current Wether")
                             }

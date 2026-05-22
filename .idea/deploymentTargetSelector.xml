@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="MainApp">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-05-14T15:36:30.341575105Z">
+        <DropdownSelection timestamp="2026-05-22T20:24:52.499562225Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/home/aliceliddle/.config/.android/avd/Pixel_6_Pro.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/aliceliddle/.config/.android/avd/Pixel_6a.avd" />
             </handle>
           </Target>
         </DropdownSelection>
@@ -15,6 +15,14 @@
       </SelectionState>
       <SelectionState runConfigName="Tests in 'com.example.frontendzmabt'">
         <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2026-05-22T19:24:12.726053268Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/aliceliddle/.config/.android/avd/Pixel_6a.avd" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
       </SelectionState>
       <SelectionState runConfigName="PostScreenTest">
         <option name="selectionMode" value="DROPDOWN" />
@@ -22,11 +30,19 @@
       <SelectionState runConfigName="NavigationTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="all_navigation_items_are_displayed()">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="post_description_displayed_correctly()">
         <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="offline_post_1000_is_displayed()">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2026-05-22T20:00:38.001193849Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/aliceliddle/.config/.android/avd/Pixel_6a.avd" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
       </SelectionState>
     </selectionStates>
   </component>

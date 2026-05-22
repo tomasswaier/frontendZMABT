@@ -64,7 +64,6 @@ fun PlaceScreen(navController: NavController, id: Int) {
     LaunchedEffect(Unit) {
         val repo = PlacesRepository(context)
         place = repo.getInfo(context, id)
-        println(place!!.aiDescription)
         println("HUH")
     }
 
